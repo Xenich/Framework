@@ -1,6 +1,7 @@
 ﻿using System;
 using TelegramBotConstructor.BotGenerator;
 using TelegramBotConstructor.Keyboards;
+using TelegramBotConstructor.StateHandlers;
 
 namespace TelegramBotConstructor.States
 {
@@ -24,9 +25,10 @@ namespace TelegramBotConstructor.States
         /// <param name="keyboardGenerator">Делегат на функцию генератора клавиатуры</param>
         /// <param name="tryDeletePrevKeyboard">Нужно ли пытаться удалить предыдущее сообщение</param>
         public DynamicInlineState(string name, string description, Guid uid, Func<Update, string> getMessage, Action<Update> _handler, string botToken, Guid defaultNextStateUid, Func<Update, DynamicInlineKeyboardBuilder> keyboardGenerator, TryDeletePrevKeyboard tryDeletePrevKeyboard)
-            : base(name, description, uid, getMessage, _handler, botToken, defaultNextStateUid, tryDeletePrevKeyboard)
+            : base(name, description, uid, getMessage, botToken, defaultNextStateUid, tryDeletePrevKeyboard)
         {
             this.keyboardGenerator = keyboardGenerator;
+            StateHandler = new InlineKeyboardStateHandler(_handler, getMessage, botToken, this);
         }
 
         internal override InlineKeyboard GetKeyboard(Update update)       // этот метод нужен только для создания InlineStateHandler (потому что клавиатуры на момент его создания ещё не существует - она попадает в класс не через конструктор)        

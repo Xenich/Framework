@@ -13,7 +13,21 @@ namespace TelegramBotConstructor.StatesBuilders
         }
 
         /// <summary>
-        /// Метод добавляет состояние конечного автомата с фиксированной inline-клавиатурой
+        /// Установить свой метод обработки входящих сообщений из inline-клавиатуры вместо стандартного.
+        /// Стандартный метод предполагает наличия Guid состояния в первых 32 байтах объекта update.CallbackQuery.Data (при этом метод InlineMessageResolve реализации интерфейса IStateResolver игнорируется).
+        /// Вместо него для определения текущего состояния будет вызываться метод InlineMessageResolve реализации интерфейса IStateResolver.
+        /// </summary>
+        public StatesBuilder SetCustomInlineStateResolver
+        {
+            get
+            {
+                bot.IsCustomInlineStateResolver = true;
+                return this;
+            }
+        }
+
+        /// <summary>
+        /// Метод добавляет состояние конечного автомата с фиксированной inline-клавиатурой.
         /// Сообщение пользователю формируется динамически делегатом getMessage
         /// </summary>
         /// <param name="name">Наименование</param>
@@ -39,8 +53,8 @@ namespace TelegramBotConstructor.StatesBuilders
 
         /// <summary>
         /// Метод добавляет состояние конечного автомата с динамической inline-клавиатурой. Клавиатура генерируется не на этапе создания бота, а при переходе бота в соответствующее состояние.
-        /// Вместо процедуры создания клавиатуры, как это делается в методе AddFixedInlineState, этот метод принимает делегат keyboardGenerator, создающий клавиатуру "на лету"
-        /// Сообщение пользователю формируется динамически делегатом getMessage
+        /// Вместо процедуры создания клавиатуры, как это делается в методе AddFixedInlineState, этот метод принимает делегат keyboardGenerator, создающий клавиатуру "на лету".
+        /// Сообщение пользователю формируется динамически делегатом getMessage.
         /// </summary>
         /// <param name="name">Наименование</param>
         /// <param name="description">Описание</param>
@@ -51,7 +65,8 @@ namespace TelegramBotConstructor.StatesBuilders
         /// <param name="keyboardGenerator">Делегат на функцию генератора клавиатуры</param>
         /// <param name="tryDeletePrevKeyboard">Нужно ли пытаться удалить предыдущее сообщение. NO по умолчанию</param> 
         /// <returns>DinamicInlineKeyboardBuilderStart</returns>
-        public StateBuilderStart AddDynamicInlineState(string name, string description, Guid uid, Func<Update, string> getMessage, Action<Update> handler, Guid defaultNextStateUid, Func<Update, DynamicInlineKeyboardBuilder> keyboardGenerator, TryDeletePrevKeyboard tryDeletePrevKeyboard = TryDeletePrevKeyboard.NO)
+        public StateBuilderStart AddDynamicInlineState(string name, string description, Guid uid, Func<Update, string> getMessage
+                                                        , Action<Update> handler, Guid defaultNextStateUid, Func<Update, DynamicInlineKeyboardBuilder> keyboardGenerator, TryDeletePrevKeyboard tryDeletePrevKeyboard = TryDeletePrevKeyboard.NO)
         {
             DynamicInlineState state = new DynamicInlineState(name, description, uid, getMessage, handler, bot.Token, defaultNextStateUid, keyboardGenerator, tryDeletePrevKeyboard);
 
@@ -60,34 +75,65 @@ namespace TelegramBotConstructor.StatesBuilders
             if (!success)
                 throw new Exception("Не уалось добавить State. Проверьте наименование и UID на предмет дублирования");
 
-            //DynamicInlineStateBuilder_Start stateBuilderStart = new DynamicInlineStateBuilder_Start(this, dynamicInlineState);
             StateBuilderStart stateBuilderStart = new StateBuilderStart(this, state);
             return stateBuilderStart;
         }
 
         /// <summary>
+        /// Метод добавляет состояние конечного автомата с динамической reply-клавиатурой. Клавиатура генерируется не на этапе создания бота, а при переходе бота в соответствующее состояние.
+        /// Вместо процедуры создания клавиатуры, как это делается в методе AddFixedReplyState, этот метод принимает делегат keyboardGenerator, создающий клавиатуру "на лету".
+        /// Сообщение пользователю формируется динамически делегатом getMessage.
+        /// </summary>
+        /// <param name="name">Имя состояния</param>
+        /// <param name="description">Описание</param>
+        /// <param name="uid">Идентификатор состояния</param>
+        /// <param name="getMessage">Функция, возвращающая сообщение пользователю, которое находится над клавиатурой</param>
+        /// <param name="handler">Обработчик состояния</param>
+        /// <param name="defaultNextStateUid">Идентификатор следующего состояния (состояние по умолчанию - если пользователь не нажал кнопку, а ввёл сообщение)</param>
+        /// <param name="keyboardGenerator">Делегат на функцию генератора клавиатуры</param>
+        /// <param name="tryDeletePrevKeyboard">Нужно ли пытаться удалить предыдущее сообщение, если оно поступило из inline-клавиатуры. NO по умолчанию</param>
+        /// <returns></returns>
+        public StateBuilderStart AddDynamicReplyState(string name, string description, Guid uid, Func<Update, string> getMessage
+                                                      , Action<Update> handler, Guid defaultNextStateUid, Func<Update, DynamicReplyKeyboardBuilder> keyboardGenerator, TryDeletePrevKeyboard tryDeletePrevKeyboard = TryDeletePrevKeyboard.NO)
+        {
+            DynamicReplyState state = new DynamicReplyState(name, description, uid, getMessage, handler, bot.Token, defaultNextStateUid, keyboardGenerator, tryDeletePrevKeyboard );
+
+            bool success = bot.TryAddState(state);
+
+            if (!success)
+                throw new Exception("Не уалось добавить State. Проверьте наименование и UID на предмет дублирования");
+
+            StateBuilderStart stateBuilderStart = new StateBuilderStart(this, state);
+            return stateBuilderStart;
+        }
+
+
+        /// <summary>
         /// Метод добавляет состояние конечного автомата с фиксированной relply-клавиатурой (даёт возможность выбрать текстовые ответы из предложенных).
         /// Сообщение пользователю формируется динамически делегатом getMessage
         /// </summary>
-        /// <param name="name">имя состояния</param>
+        /// <param name="name">Имя состояния</param>
         /// <param name="description">описание</param>
         /// <param name="uid">Идентификатор состояния</param>
         /// <param name="getMessage">Функция, возвращающая сообщение пользователю, которое находится над клавиатурой</param>
         /// <param name="handler">Обработчик состояния</param>
         /// <param name="nextStateUid">Идентификатор следующего состояния</param>
-        /// <param name="tryDeletePrevKeyboard">Нужно ли пытаться удалить предыдущее сообщение</param>
-        public ReplyStateBuilderStart AddReplyState(string name, string description, Guid uid, Func<Update, string> getMessage, Action<Update> handler, Guid nextStateUid, TryDeletePrevKeyboard tryDeletePrevKeyboard = TryDeletePrevKeyboard.NO)
+        /// <param name="tryDeletePrevKeyboard">Нужно ли пытаться удалить предыдущее сообщение, если оно поступило из inline-клавиатуры. NO по умолчанию</param>
+        public FixedReplyStateBuilderStart AddFixedReplyState(string name, string description, Guid uid, Func<Update, string> getMessage
+                                                              , Action<Update> handler, Guid nextStateUid, TryDeletePrevKeyboard tryDeletePrevKeyboard = TryDeletePrevKeyboard.NO)
         {
-            ReplyState replyState = new ReplyState(name, description, uid, getMessage, handler, bot.Token, nextStateUid, tryDeletePrevKeyboard);
+            FixedReplyState replyState = new FixedReplyState(name, description, uid, getMessage, handler, bot.Token, nextStateUid, tryDeletePrevKeyboard);
 
             bool success = bot.TryAddState(replyState);
 
             if (!success)
                 throw new Exception("Не уалось добавить State. Проверьте наименование и UID на предмет дублирования");
 
-            ReplyStateBuilderStart replyStateBuilderStart = new ReplyStateBuilderStart(this, replyState);
+            FixedReplyStateBuilderStart replyStateBuilderStart = new FixedReplyStateBuilderStart(this, replyState);
             return replyStateBuilderStart;
         }
+
+
 
         /// <summary>
         /// Метод добавляет состояние конечного автомата с обычным текстовым сообщением и безальтернативным переходом в следующее состояние

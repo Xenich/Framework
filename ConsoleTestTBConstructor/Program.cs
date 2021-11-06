@@ -14,11 +14,12 @@ namespace ConsoleTestTBConstructor
 {
     class Program
     {
-        public static Dictionary<string, Guid> nameToGuidDic = new Dictionary<string, Guid>();
+        public static Dictionary<string, Guid> stateNameToGuidDic = new Dictionary<string, Guid>();
 
         static void Main(string[] args)
         {
-           
+            Console.ReadKey();
+
             Console.WriteLine("ПРИМЕР СОЗДАНИЯ БОТА");
 
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
@@ -41,15 +42,18 @@ namespace ConsoleTestTBConstructor
             Guid textState_2UID = Guid.NewGuid();
             Guid dynamicState_1UID = Guid.NewGuid();
             Guid replyState_1UID = Guid.NewGuid();
+            Guid replyDynamicState_1UID = Guid.NewGuid();
 
-            nameToGuidDic.Add(StateNames.name1.ToString(), inlineState_1UID);
-            nameToGuidDic.Add(StateNames.name2.ToString(), inlineState_2UID);
-            nameToGuidDic.Add(StateNames.name3.ToString(), inlineState_3UID);
-            nameToGuidDic.Add(StateNames.name4.ToString(), textState_1UID);
-            nameToGuidDic.Add(StateNames.name5.ToString(), textState_2UID);
-            nameToGuidDic.Add(StateNames.dyamic.ToString(), dynamicState_1UID);
-            nameToGuidDic.Add(StateNames.reply.ToString(), replyState_1UID);
-
+            
+            stateNameToGuidDic.Add(StateNames.name1.ToString(), inlineState_1UID);
+            stateNameToGuidDic.Add(StateNames.name2.ToString(), inlineState_2UID);
+            stateNameToGuidDic.Add(StateNames.name3.ToString(), inlineState_3UID);
+            stateNameToGuidDic.Add(StateNames.name4.ToString(), textState_1UID);
+            stateNameToGuidDic.Add(StateNames.name5.ToString(), textState_2UID);
+            stateNameToGuidDic.Add(StateNames.dyamic.ToString(), dynamicState_1UID);
+            stateNameToGuidDic.Add(StateNames.reply.ToString(), replyState_1UID);
+            stateNameToGuidDic.Add(StateNames.dynamicRep.ToString(), replyDynamicState_1UID);
+            
             Action<Update> handler =
                 (upd) =>
                 {
@@ -62,21 +66,38 @@ namespace ConsoleTestTBConstructor
                     logger.LogWarning("Обработчик textState_1UID" + upd.UpdateId.ToString());
                 };
             
-            Func<Update, DynamicInlineKeyboardBuilder> dynamicKeyboard_1=
+            Func<Update, DynamicInlineKeyboardBuilder> dynamicInlineKeyboard_1=
                 (upd) =>
                 {
                     DynamicInlineKeyboardBuilder keyboardBuilder = new DynamicInlineKeyboardBuilder();
                     return
                     keyboardBuilder
                         .AddRow
-                            .AddButtonToRow( "ChatId: " + upd.GetChatId().ToString(), StateNames.name2.ToString())
+                            .AddButtonWithStateInCallbackData(inlineState_2UID, "ChatId: " + upd.GetChatId().ToString())                            
                             .AddURLButton("google.com", "GOTO GOOGLE")
                          .FinishRow
                          .AddRow
                             .AddURLButton("facebook.com", "GOTO Facebook")
                          .FinishRow;
                 };
-            
+
+            Func<Update, DynamicReplyKeyboardBuilder> dynamicReplyKeyboard_1 =
+                (upd) =>
+                {
+                    DynamicReplyKeyboardBuilder keyboardBuilder = new DynamicReplyKeyboardBuilder("fieldPlaceholder", true, true);
+                    return
+                    keyboardBuilder
+                        .AddRow
+                            .AddRequestContactButton("Контакт")
+                            .AddButton("Введено: " + upd.GetMessageText())                            
+                         .FinishRow
+                         .AddRow
+                            .AddRequestLocationButton("Локация")
+                         .FinishRow;
+                };
+
+
+
             Bot bot;
 
             try
@@ -87,15 +108,16 @@ namespace ConsoleTestTBConstructor
                     .SetToken("1120463837:AAHEvmnejgfiH7CvnEts9M5TliR-SQdigpc")
                     .SetInternalHandlerWebHook(1000)
                     .BeginAddStates
+                        //.SetCustomInlineStateResolver
                         .AddFixedInlineState(StateNames.name1.ToString(), "description", inlineState_1UID, (upd) => "chatId=" + upd.GetChatId().ToString() + ": message NAME1", null, inlineState_1UID, TryDeletePrevKeyboard.YES)
                             .WithCallbackQueryNotification("")
                             .CreateKeyboard
                                 .AddRow
-                                    .AddButton(inlineState_2UID, "name2", StateNames.name2.ToString())
-                                    .AddButton(inlineState_3UID, "name3", StateNames.name3.ToString())
+                                    .AddButtonWithStateInCallbackData(textState_1UID, "To text state 1")
+                                    .AddButtonWithStateInCallbackData(inlineState_3UID,"name3", StateNames.name3.ToString())
                                 .FinishRow
                                 .AddRow
-                                    .AddButton(inlineState_3UID, "name3", StateNames.name3.ToString())
+                                    .AddButtonWithStateInCallbackData(inlineState_3UID, "name3", StateNames.name3.ToString())
                                 .FinishRow
                             .FinishKeyboard
                          .AddFixedInlineState(StateNames.name2.ToString(), "description2", inlineState_2UID, (upd) => "message NAME2", null, inlineState_1UID, TryDeletePrevKeyboard.YES)
@@ -103,11 +125,11 @@ namespace ConsoleTestTBConstructor
                             .TryHideReplyKeyBoard
                             .CreateKeyboard
                                 .AddRow
-                                    .AddButton(inlineState_2UID, "name2", StateNames.name2.ToString())
-                                    .AddButton(inlineState_3UID, "name3", StateNames.name3.ToString())
+                                    .AddButtonWithStateInCallbackData(replyDynamicState_1UID, "TO dynamic Reply")
+                                    .AddButtonWithStateInCallbackData(inlineState_3UID, "name3", StateNames.name3.ToString())
                                 .FinishRow
                                 .AddRow
-                                    .AddButton(inlineState_1UID, "name1", StateNames.name1.ToString())
+                                    .AddButtonWithStateInCallbackData(inlineState_1UID, "name1", StateNames.name1.ToString())
                                     .AddURLButton("facebook.com", "google.com")
                                 .FinishRow
                             .FinishKeyboard
@@ -115,10 +137,10 @@ namespace ConsoleTestTBConstructor
                             .WithCallbackQueryNotification("Callbackquery Notification Text")
                             .CreateKeyboard
                                 .AddRow
-                                    .AddButton(inlineState_1UID, "name1", StateNames.name1.ToString())
-                                    .AddButton(inlineState_2UID, "name2", StateNames.name2.ToString())
-                                    .AddButton(replyState_1UID, "TO REPLY", StateNames.reply.ToString())
-                                    .AddButton(dynamicState_1UID, "К динамике", StateNames.dyamic.ToString())
+                                    .AddButtonWithStateInCallbackData(inlineState_1UID, "name1")
+                                    .AddButtonWithStateInCallbackData(inlineState_2UID, "name2")
+                                    .AddButtonWithStateInCallbackData(replyState_1UID, "TO REPLY")
+                                    .AddButtonWithStateInCallbackData(dynamicState_1UID, "К динамике")
                                 .FinishRow
                             .FinishKeyboard                            
                         .AddTextState(StateNames.name4.ToString(), "description simple text", textState_1UID, (upd) => "chatId=" + upd.GetChatId().ToString() + "Простое текстовое сообщение1", handler1, textState_2UID)
@@ -126,10 +148,12 @@ namespace ConsoleTestTBConstructor
                             .Next                        
                         .AddTextState(StateNames.name5.ToString(), "description simple text", textState_2UID, (upd) => "chatId=" + upd.GetChatId().ToString() + "Простое текстовое сообщение2", handler1, inlineState_2UID)
                             .Next
-                        .AddDynamicInlineState(StateNames.dyamic.ToString(), "", dynamicState_1UID, (upd) => "chatId=" + upd.GetChatId().ToString() + " Динамическое состояние", handler1, inlineState_1UID, dynamicKeyboard_1, TryDeletePrevKeyboard.YES)
+                        .AddDynamicInlineState(StateNames.dyamic.ToString(), "", dynamicState_1UID, (upd) => "chatId=" + upd.GetChatId().ToString() + " Динамическое состояние", handler1, inlineState_1UID, dynamicInlineKeyboard_1, TryDeletePrevKeyboard.YES)
                             .WithCallbackQueryNotification("Dynamic Callback Notification")
                             .Next
-                        .AddReplyState(StateNames.reply.ToString(),"", replyState_1UID, (upd) => "chatId=" + upd.GetChatId().ToString() + "ReplyState!!!", handler1, inlineState_2UID)
+                        .AddDynamicReplyState(StateNames.dynamicRep.ToString(),"descr", replyDynamicState_1UID, (upd)=>"Динамически сформированная Reply-клавиатура", handler1, inlineState_1UID, dynamicReplyKeyboard_1, TryDeletePrevKeyboard.YES)
+                            .Next
+                        .AddFixedReplyState(StateNames.reply.ToString(),"", replyState_1UID, (upd) => "chatId=" + upd.GetChatId().ToString() + "ReplyState!!!", handler1, inlineState_2UID, TryDeletePrevKeyboard.YES)
                             .WithCallbackQueryNotification("CallbackQueryNotification FROM REPLY KEYBOARD")
                             .CreateReplyKeyboard("fieldPlaceholder", true, true)                            
                                 .AddRow
@@ -170,6 +194,7 @@ namespace ConsoleTestTBConstructor
         name4, 
         name5,
         dyamic,
-        reply
+        reply,
+        dynamicRep
     }
 }

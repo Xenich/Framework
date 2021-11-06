@@ -16,7 +16,7 @@ namespace TelegramBotConstructor.StatesBuilders
         }
 
         /// <summary>
-        /// Начать добавлять состояния
+        /// Начать добавлять состояния. Каждое состояние бота представляет собой состояние конечного автомата.
         /// </summary>
         public StatesBuilder BeginAddStates
         {

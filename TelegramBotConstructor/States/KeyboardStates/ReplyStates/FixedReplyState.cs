@@ -1,14 +1,15 @@
 ﻿using System;
 using TelegramBotConstructor.Keyboards;
+using TelegramBotConstructor.StateHandlers;
 
 namespace TelegramBotConstructor.States
 {
-    internal class ReplyState : KeyboardState
+    internal class FixedReplyState : KeyboardState
     {
         private ReplyKeyboard keyboard;
 
         /// <summary>
-        /// Состояние конечного автомата с фиксированной relply-клавиатурой, клавиатура создаётся на этапе создания бота.
+        /// Состояние конечного автомата с фиксированной reply-клавиатурой, клавиатура создаётся на этапе создания бота.
         /// Характеризуется одним вариантами переходов в другие состояния.
         /// </summary>
         /// <param name="name">имя состояния</param>
@@ -18,10 +19,11 @@ namespace TelegramBotConstructor.States
         /// <param name="handler">Обработчик состояния</param>
         /// <param name="botToken">Токен бота</param>
         /// <param name="defaultNextStateUid">Идентификатор следующего состояния</param>
-        /// <param name="tryDeletePrevKeyboard">Нужно ли пытаться удалить предыдущее сообщение</param>
-        public ReplyState(string name, string description, Guid uid, Func<Update, string> getMessage, Action<Update> handler, string botToken, Guid defaultNextStateUid, TryDeletePrevKeyboard tryDeletePrevKeyboard)
-            : base(name, description, uid, getMessage, handler, botToken, defaultNextStateUid, tryDeletePrevKeyboard)
-        { }
+        public FixedReplyState(string name, string description, Guid uid, Func<Update, string> getMessage, Action<Update> handler, string botToken, Guid defaultNextStateUid, TryDeletePrevKeyboard tryDeletePrevKeyboard)
+            : base(name, description, uid, getMessage, botToken, defaultNextStateUid, tryDeletePrevKeyboard)
+        {
+            StateHandler = new ReplyKeyboardStateHandler(handler, getMessage, botToken, this);
+        }
 
         internal void SetKeyboard(ReplyKeyboard keyboard)
         {

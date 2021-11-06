@@ -112,6 +112,9 @@ namespace TelegramBotConstructor
         public Message Message { get; set; }
         [JsonProperty("chat_instance")]
         public string ChatInstance { get; set; }
+        /// <summary>
+        /// Data associated with the callback button
+        /// </summary>
         [JsonProperty("data")]
         public string Data { get; set; }
     }

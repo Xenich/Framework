@@ -13,7 +13,7 @@ namespace TelegramBotConstructor.StateHandlers
         public override void HandleWithoutResponce(Update update)
         {
             CustomHandlerCall(update);
-            HideReplyKeyboard(update);
+            //HideReplyKeyboard(update);
             if(IsNeedTryHideReplyKeyboard)
                 BotHelper.ReplyKeyboardRemove(getMessage(update), update.GetChatId(), botToken);
             else
@@ -23,7 +23,7 @@ namespace TelegramBotConstructor.StateHandlers
         public override async Task<string> HandleWithResponceAsync(Update update)
         {
             CustomHandlerCall(update);
-            HideReplyKeyboard(update);
+            //HideReplyKeyboard(update);
             CallbackQueryNotification(update);
             if (IsNeedTryHideReplyKeyboard)
                 return await BotHelper.ReplyKeyboardRemoveWithResponceAsync(getMessage(update), update.GetChatId(), botToken);

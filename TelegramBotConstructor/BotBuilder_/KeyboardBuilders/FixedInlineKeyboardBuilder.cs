@@ -3,31 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TelegramBotConstructor.BotGenerator;
 using TelegramBotConstructor.Keyboards;
 using TelegramBotConstructor.States;
+using TelegramBotConstructor.StatesBuilders;
 
 namespace TelegramBotConstructor.StatesBuilders
 {
-    public class FixedInlineStateBuilder_Start : MainStateBuilderStart<FixedInlineStateBuilder_Start>
-    {
-        internal FixedInlineStateBuilder_Start(StatesBuilder statesBuilder, FixedInlineState state)
-            : base(statesBuilder, state)
-        {
-            derivedStateBuilder = this;
-        }
-
-
-        public FixedInlineKeyboardBuilder CreateKeyboard
-        {
-            get
-            {
-                FixedInlineKeyboardBuilder fixedInlineKeyboardBuilder = new FixedInlineKeyboardBuilder(statesBuilder, state as FixedInlineState);
-                return fixedInlineKeyboardBuilder;
-            }
-        }
-    }
-
     public class FixedInlineKeyboardBuilder
     {
         private readonly StatesBuilder statesBuilder;
@@ -41,17 +22,23 @@ namespace TelegramBotConstructor.StatesBuilders
             this.inlineState = inlineState;
         }
 
-        public InlineButtonBuilder AddRow
+        /// <summary>
+        /// Добавить строку
+        /// </summary>
+        public InlineButtonBuilder<FixedInlineKeyboardBuilder> AddRow
         {
             get
             {
                 InlineKeyboardRow row = new InlineKeyboardRow();
                 inlineKeyboard.AddRow(row);
-                InlineButtonBuilder buttonBuilder = new InlineButtonBuilder(this, row);
+                InlineButtonBuilder<FixedInlineKeyboardBuilder> buttonBuilder = new InlineButtonBuilder<FixedInlineKeyboardBuilder>(this, row);
                 return buttonBuilder;
             }
         }
 
+        /// <summary>
+        /// Закончить клавиатуру и перейти к следующему состоянию
+        /// </summary>
         public StatesBuilder FinishKeyboard
         {
             get

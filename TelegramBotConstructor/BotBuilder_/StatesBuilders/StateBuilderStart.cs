@@ -16,6 +16,9 @@ namespace TelegramBotConstructor.StatesBuilders
             derivedStateBuilder = this;
         }
 
+        /// <summary>
+        /// Закончить формирование состояния
+        /// </summary>
         public StatesBuilder Next
         {            
             get { return statesBuilder; }

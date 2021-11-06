@@ -20,9 +20,9 @@ namespace TelegramBotConstructor.StatesBuilders
         }
 
         /// <summary>
-        /// Нужно ли отправлять всплывающие сообщения в случае, если был запросы обратного вызова, отправленный с inline-клавиатуры
+        /// Нужно ли отправлять всплывающие сообщения в случае, если это был запрос обратного вызова, отправленный с inline-клавиатуры
         /// </summary>
-        /// <param name="callbackQueryNotificationText">Текст, посылаемый юзеру в случае, если на это состояние он попал после нажатия кнопки inline-клавиатуры</param>
+        /// <param name="callbackQueryNotificationText">Текст, посылаемый юзеру в виде всплывающего сообщения в случае, если на это состояние он попал после нажатия кнопки inline-клавиатуры</param>
         /// <returns></returns>
         public T WithCallbackQueryNotification(string callbackQueryNotificationText)
         {

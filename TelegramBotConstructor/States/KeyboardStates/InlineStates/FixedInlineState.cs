@@ -1,5 +1,6 @@
 ﻿using System;
 using TelegramBotConstructor.Keyboards;
+using TelegramBotConstructor.StateHandlers;
 
 namespace TelegramBotConstructor.States
 {
@@ -22,8 +23,10 @@ namespace TelegramBotConstructor.States
         /// <param name="defaultNextStateUid">Идентификатор следующего состояния (состояние по умолчанию - если пользователь не нажал кнопку, а ввёл сообщение с клавиатуры)</param>
         /// <param name="tryDeletePrevKeyboard">Нужно ли пытаться удалить предыдущее сообщение</param>
         public FixedInlineState(string name, string description, Guid uid, Func<Update, string> getMessage, Action<Update> handler, string botToken, Guid defaultNextStateUid, TryDeletePrevKeyboard tryDeletePrevKeyboard)
-            : base(name, description, uid, getMessage, handler, botToken, defaultNextStateUid, tryDeletePrevKeyboard)
-        { }
+            : base(name, description, uid, getMessage, botToken, defaultNextStateUid, tryDeletePrevKeyboard)
+        {
+            StateHandler = new InlineKeyboardStateHandler(handler, getMessage, botToken, this);
+        }
 
         internal void SetKeyboard(IKeyboard keyboard)
         {

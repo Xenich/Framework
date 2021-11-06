@@ -97,7 +97,7 @@ namespace TelegramBotConstructor
         /// <param name="message_id"></param>
         /// <param name="chat_id"></param>
         /// <param name="botToken"></param>
-        public static void DeleteMessage(int message_id, int chat_id, string botToken)
+        public static async Task DeleteMessageAsync(int message_id, int chat_id, string botToken)
         {
             Dictionary<string, string> messageDict = new Dictionary<string, string>()
             {
@@ -105,7 +105,7 @@ namespace TelegramBotConstructor
                 { "chat_id", chat_id.ToString()  }
             };
             string json = Newtonsoft.Json.JsonConvert.SerializeObject(messageDict);
-            Send("deleteMessage", json, botToken);
+            await SendWithResponseAsync("deleteMessage", json, botToken);
         }
 
         /// <summary>

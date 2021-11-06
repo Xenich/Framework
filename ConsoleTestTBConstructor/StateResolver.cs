@@ -15,17 +15,17 @@ namespace ConsoleTestTBConstructor
 
             if (chatIdToCurrentStateDic.ContainsKey(chatId))
                 if (update.CallbackQuery.Data == StateNames.name1.ToString())
-                    return Program.nameToGuidDic[StateNames.name2.ToString()];
+                    return Program.stateNameToGuidDic[StateNames.name2.ToString()];
                 else
-                    return Program.nameToGuidDic[update.CallbackQuery.Data];
+                    return Program.stateNameToGuidDic[update.CallbackQuery.Data];
             else
-                return Program.nameToGuidDic[update.CallbackQuery.Data];
+                return Program.stateNameToGuidDic[update.CallbackQuery.Data];
 
         }
 
         public Guid PhotoMessageResolve(Update update)
         {
-            return Program.nameToGuidDic["name1"]; 
+            return Program.stateNameToGuidDic["name1"]; 
         }
 
 
@@ -36,15 +36,15 @@ namespace ConsoleTestTBConstructor
 
             string message = update.GetMessageText();
             if (message == "/start")
-                return Program.nameToGuidDic["name2"];
+                return Program.stateNameToGuidDic["name2"];
             if (message == "666")
-                return Program.nameToGuidDic["name1"];
+                return Program.stateNameToGuidDic["name1"];
             else
             {
                 if (chatIdToCurrentStateDic.ContainsKey(chatId))
                     return chatIdToCurrentStateDic[chatId];
                 else
-                    return Program.nameToGuidDic["name2"]; 
+                    return Program.stateNameToGuidDic["name2"]; 
             }
         }
 
