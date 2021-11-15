@@ -8,7 +8,7 @@ using TelegramBotConstructor.States;
 
 namespace TelegramBotConstructor.StateHandlers
 {
-    internal class ReplyKeyboardStateHandler : KeyboardStateHandler
+    internal class ReplyKeyboardStateHandler : BaseKeyboardStateHandler
     {
         internal ReplyKeyboardStateHandler(Action<Update> handler, Func<Update, string> getMessage, string botToken, KeyboardState keyboardState)
             : base(handler, getMessage, botToken, keyboardState)

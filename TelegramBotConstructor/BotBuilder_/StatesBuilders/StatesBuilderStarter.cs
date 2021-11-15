@@ -26,5 +26,27 @@ namespace TelegramBotConstructor.StatesBuilders
                 return statesBuilder;
             }
         }
+
+        /// <summary>
+        /// Установить обработчик события удаления чата с ботом
+        /// </summary>
+        /// <param name="botKickedHandler">Делегат на обработчик</param>
+        /// <returns></returns>
+        public StatesBuilderStarter SetBotKickedEventHandler(Action<Update> botKickedHandler)
+        {
+            bot.BotKickedEventHandler = botKickedHandler;
+            return this;
+        }
+
+        /// <summary>
+        /// Установить обработчик события добавления юзером бота
+        /// </summary>
+        /// <param name="botAddedEventHandler">Делегат на обработчик</param>
+        /// <returns></returns>
+        public StatesBuilderStarter SetBotAddedEventHandler(Action<Update> botAddedEventHandler)
+        {
+            bot.BotAddedEventHandler = botAddedEventHandler;
+            return this;
+        }
     }
 }

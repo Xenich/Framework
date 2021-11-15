@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using TelegramBotConstructor.BotGenerator;
 using TelegramBotConstructor.Iterfaces;
 using TelegramBotConstructor.Keyboards;
+using TelegramBotConstructor.MessageHandlers;
 using TelegramBotConstructor.States;
 
 namespace TelegramBotConstructor
@@ -29,12 +30,12 @@ namespace TelegramBotConstructor
         /// <summary>
         /// Определение состояния конечного автомата
         /// </summary>
-        private readonly IStateResolver _stateResolver;
+        internal readonly IStateResolver _stateResolver;
                                                    
         internal bool IsWebhook { private get;  set; }
         internal int Interval { private get; set; }
 
-        internal bool IsCustomInlineStateResolver { private get; set; }
+        internal bool IsCustomInlineStateResolver { get; set; }
 
         /// <summary>
         /// Нужно ли делать проверку на то, послан ли запрос из предыдущей inline-клавиатуры, чтоб отказаться от его обработки в будущем.
@@ -45,18 +46,40 @@ namespace TelegramBotConstructor
         /// <summary>
         /// Словарь chatId -> Id последнего обработанного сообщения этого чата. Словарь ведется в случае isNeedToCheckPreviousInlineMessage = true
         /// </summary>
-        private readonly Dictionary<int, int> chatIdToCurrentMessageId_dic = new Dictionary<int, int>();
+        private readonly Dictionary<int, int> chatIdToCurrentMessageId_dic = new Dictionary<int, int>();       
+
+        internal void SetCurrentMessageIdToChatId(int chatId, int messageId)
+        {
+            if (chatIdToCurrentMessageId_dic.ContainsKey(chatId))
+                chatIdToCurrentMessageId_dic[chatId] = messageId;
+            else
+                chatIdToCurrentMessageId_dic.Add(chatId, messageId);
+        }
+
+        internal int GetCurrentMessageIdByChatId(int chatId)
+        {
+            if (chatIdToCurrentMessageId_dic.ContainsKey(chatId))
+                return chatIdToCurrentMessageId_dic[chatId];
+            else
+                return 0;
+        }
+
+        
+        /// <summary>
+        /// Делегат на функцию, обрабатывающую событие удаления юзером чата с ботом
+        /// </summary>
+        internal Action<Update> BotKickedEventHandler;
 
         /// <summary>
-        /// Делегат на функцию определения состояния
+        /// Делегат на функцию, обрабатывающую событие добавления юзером бота
         /// </summary>
-        //internal Func<Update, string> StateResolver;
+        internal Action<Update> BotAddedEventHandler;
 
+        private readonly bool isNeedLogging;
 
-        readonly bool isNeedLogging;
-        int lastUpdate = 0;   // текущий номер сообщения
+        private int lastUpdate = 0;   // текущий номер сообщения
 
-        public string Token { get; internal set; }
+        internal string Token { get;  set; }
 
         /// <summary>
         /// словарь : имя состояния -> состояние конечного автомата
@@ -77,6 +100,30 @@ namespace TelegramBotConstructor
                 _logger = logger;
             }
             _stateResolver = stateResolver;
+        }
+
+        /// <summary>
+        /// Проверка на то, является ли входящее сообщение нажатием на кнопку старой инлайн-клавиатуры и нужно ли такое сообщение обрабатывать
+        /// </summary>
+        /// <param name="chatId"></param>
+        /// <param name="update"></param>
+        /// <returns>true - старое сообщение, обрабатывать не нужно. false - нужно обработать</returns>
+        internal bool CheckIfPreviousInlineMessage(int chatId, Update update)
+        {
+            if (isNeedToCheckPreviousInlineMessage)
+            {
+                if (!chatIdToCurrentMessageId_dic.ContainsKey(chatId))
+                    chatIdToCurrentMessageId_dic.Add(chatId, update.GetMessageId());
+                int currentMessageId = chatIdToCurrentMessageId_dic[chatId];
+                int incomingMessageId = update.GetMessageId();
+
+                if (incomingMessageId < currentMessageId)
+                    return true;
+                else
+                    chatIdToCurrentMessageId_dic[chatId] = incomingMessageId;
+                return false;
+            }
+            return false;
         }
 
         /// <summary>
@@ -168,38 +215,8 @@ namespace TelegramBotConstructor
         {
             try
             {
-                int chatId = update.GetChatId();
-
-                // 0. Определяем сначала, нужно ли вообще обрабатывать сообщение
-                if (isNeedToCheckPreviousInlineMessage)
-                {
-                    if (!chatIdToCurrentMessageId_dic.ContainsKey(chatId))
-                        chatIdToCurrentMessageId_dic.Add(chatId, update.GetMessageId());
-                    int currentMessageId = chatIdToCurrentMessageId_dic[chatId];
-                    int incomingMessageId = update.GetMessageId();
-
-                    if (incomingMessageId < currentMessageId)
-                        return;
-                    else
-                        chatIdToCurrentMessageId_dic[chatId] = incomingMessageId;
-                }
-                // 1. Определяем текущее состояние
-                Guid stateUid = ResolveStateUid(update);         // Определяем идентификатор текущего состояния
-                State currentState = GetStateByUid(stateUid);
-
-                if (currentState != null)
-                {
-                    // 2. Вызываем обработчик текущего состояния
-                    await StateHandler(update, chatId, currentState);
-
-                    // 3. Устанавливаем новое текущее состояние
-                    _stateResolver.SetCurrentState(update, currentState.DefaultNextStateUid);
-
-                    // 4. Конец обработки сообщения
-                    Log(string.Format("HandleMessageFromTelegram: update_id = {0}", update.UpdateId));
-                }
-                else
-                    LogError(string.Format("HandleMessageFromTelegram: update_id = {0} . Не удалось найти State с Guid = {1}", update.UpdateId, stateUid.ToString()));
+                MessageHandler messageHandler = MessageHandlerFactory.CreateHandler(update, this);
+                await messageHandler.Handle();
             }
             catch (Exception ex)
             {
@@ -207,76 +224,10 @@ namespace TelegramBotConstructor
             }
         }
 
-        /// <summary>
-        /// Обработчик текущего состояния конечного автомата
-        /// </summary>
-        /// <param name="update"></param>
-        /// <param name="chatId"></param>
-        /// <param name="state"></param>
-        private async Task StateHandler(Update update, int chatId, State state)
-        {
-            if (isNeedToCheckPreviousInlineMessage)
-            {
-                string response = await state.StateHandler.HandleWithResponceAsync(update);
-                if (response == "BADSTATUS")
-                {
-                    LogError(string.Format("HandleMessageFromTelegram: update_id = {0}. BADSTATUS response", update.UpdateId));
-                }
-                else
-                {
-                    ResponceFromTelegram resp = Newtonsoft.Json.JsonConvert.DeserializeObject<ResponceFromTelegram>(response);
-                    if (resp.Ok)
-                    {
-                        int message_id = resp.Result.MessageId;
-                        chatIdToCurrentMessageId_dic[chatId] = message_id;
-                    }
-                }
-            }
-            else
-                state.StateHandler.HandleWithoutResponce(update);
-        }
 
-        private Guid ResolveStateUid(Update update)
-        {
-            Guid stateUid = Guid.Empty;
-            if (update.IsPhotoMessage())            // пришло фото
-            {
-                stateUid = _stateResolver.PhotoMessageResolve(update);
-            }
-            if (update.IsSimpleMessage())           // пришло сообщение, введенное пользователем
-            {
-                stateUid = _stateResolver.SimpleMessageResolve(update);
-            }
-            if (update.IsCallbackQueryMessage())    // пришло сообщение от inline-клавиатуры
-            {
-                if (IsCustomInlineStateResolver)
-                    stateUid = _stateResolver.InlineMessageResolve(update);
-                else
-                    stateUid = StandartResolveInlineState(update.CallbackQuery.Data);
-
-            }
-            return stateUid;
-        }
         //This object represents an incoming callback query from a callback button in an inline keyboard
 
-        /// <summary>
-        /// Стандартный метод, определяющий состояние конечного автомата при входящем сообщении после нажатия кнопки inline-клавиатуры.
-        /// Считывает первывые 32 байта callbackQuery и преобразовывает их в Guid
-        /// </summary>
-        /// <param name="callbackQueryData">объект Update.CallbackQuery.Data</param>
-        /// <returns>Идентификатор состояния</returns>
-        private Guid StandartResolveInlineState(string callbackQueryData)
-        {
-            if(callbackQueryData.Length<32)
-                throw new Exception(string.Format("Не удаётся прочитать Guid состояния. callbackQueryData: {0}", callbackQueryData));
-            string uid = callbackQueryData.Substring(0,32);
-            Guid guid;
-            bool succeess = Guid.TryParse(uid, out guid);
-            if (!succeess)
-                throw new Exception(string.Format("Не удаётся прочитать Guid состояния. callbackQueryData: {0}", callbackQueryData));
-            else
-                return guid;
-        }
+
 
         public State GetStateByName(string name)
         {
@@ -286,7 +237,7 @@ namespace TelegramBotConstructor
                 return null;
         }
 
-        public State GetStateByUid(Guid uid)
+        internal State GetStateByUid(Guid uid)
         {
             if (uidToState_dic.ContainsKey(uid))
                 return uidToState_dic[uid];
@@ -295,13 +246,13 @@ namespace TelegramBotConstructor
         }
 
 
-        void Log(string message)
+        internal void Log(string message)
         {
             if(isNeedLogging)
                 _logger.Log(LogLevel.Information, message);
         }
 
-        void LogError(string message)
+        internal void LogError(string message)
         {
             if (isNeedLogging)
                 _logger.Log(LogLevel.Error, message);

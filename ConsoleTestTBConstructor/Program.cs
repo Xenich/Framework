@@ -18,7 +18,7 @@ namespace ConsoleTestTBConstructor
 
         static void Main(string[] args)
         {
-            Console.ReadKey();
+            //Console.ReadKey();
 
             Console.WriteLine("ПРИМЕР СОЗДАНИЯ БОТА");
 
@@ -96,7 +96,7 @@ namespace ConsoleTestTBConstructor
                          .FinishRow;
                 };
 
-
+            Action<Update> botKickedHandler = (upd) => { logger.LogWarning("Бот был забанен" + upd.UpdateId.ToString()); };
 
             Bot bot;
 
@@ -107,6 +107,8 @@ namespace ConsoleTestTBConstructor
                     .StartFlowBuilder(logger, stateResolver)
                     .SetToken("1120463837:AAHEvmnejgfiH7CvnEts9M5TliR-SQdigpc")
                     .SetInternalHandlerWebHook(1000)
+                    .SetBotKickedEventHandler(botKickedHandler)
+                    .SetBotAddedEventHandler((upd)=> { logger.LogWarning("Бот был добавлен" + upd.UpdateId.ToString()); })
                     .BeginAddStates
                         //.SetCustomInlineStateResolver
                         .AddFixedInlineState(StateNames.name1.ToString(), "description", inlineState_1UID, (upd) => "chatId=" + upd.GetChatId().ToString() + ": message NAME1", null, inlineState_1UID, TryDeletePrevKeyboard.YES)

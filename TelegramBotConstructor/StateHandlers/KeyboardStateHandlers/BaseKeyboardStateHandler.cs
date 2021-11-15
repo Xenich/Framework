@@ -5,11 +5,11 @@ using TelegramBotConstructor.States;
 
 namespace TelegramBotConstructor.StateHandlers
 {
-    internal abstract class KeyboardStateHandler : StateHandler
+    internal abstract class BaseKeyboardStateHandler : StateHandler
     {
         protected readonly KeyboardState keyboardState;
 
-        internal KeyboardStateHandler(Action<Update> handler, Func<Update, string> getMessage, string botToken, KeyboardState keyboardState)
+        internal BaseKeyboardStateHandler(Action<Update> handler, Func<Update, string> getMessage, string botToken, KeyboardState keyboardState)
             : base(handler, getMessage, botToken)
         {
             this.keyboardState = keyboardState;

@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using JsonSubTypes;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,11 +28,18 @@ namespace TelegramBotConstructor
         public Message Message { get; set; }
         [JsonProperty("callback_query")]
         public CallbackQuery CallbackQuery { get; set; }
+        /// <summary>
+        /// Optional. The bot's chat member status was updated in a chat. For private chats, this update is received only when the bot is blocked or unblocked by the user.
+        /// </summary>
+        [JsonProperty("my_chat_member")]
+        public ChatMemberUpdated ChatMemberUpdated { get; set; }
 
         public int GetChatId()
         {
             if (IsCallbackQueryMessage())
                 return CallbackQuery.From.Id;
+            if (IsChatMemberUpdated())
+                return ChatMemberUpdated.From.Id;
             else
                 return Message.From.Id;
         }
@@ -53,6 +61,15 @@ namespace TelegramBotConstructor
         public bool IsCallbackQueryMessage()
         {
             return CallbackQuery != null;
+        }
+
+        /// <summary>
+        /// Метод показывает был ли изменен статус бота в чате. Для приватных чатов это происходит только тогда, когда бот блокируется или разблокируется юзером
+        /// </summary>
+        /// <returns></returns>
+        public bool IsChatMemberUpdated()
+        {
+            return ChatMemberUpdated != null;
         }
 
         public string GetCallbackQueryId()
@@ -107,7 +124,7 @@ namespace TelegramBotConstructor
         [JsonProperty("id")]
         public string Id { get; set; }
         [JsonProperty("from")]
-        public From From { get; set; }
+        public User From { get; set; }
         [JsonProperty("message")]
         public Message Message { get; set; }
         [JsonProperty("chat_instance")]
@@ -118,12 +135,13 @@ namespace TelegramBotConstructor
         [JsonProperty("data")]
         public string Data { get; set; }
     }
+
     public class Message
     {
         [JsonProperty("message_id")]
         public int MessageId { get; set; }
         [JsonProperty("from")]
-        public From From { get; set; }
+        public User From { get; set; }
         [JsonProperty("chat")]
         public Chat Chat { get; set; }
         [JsonProperty("date")]
@@ -135,7 +153,7 @@ namespace TelegramBotConstructor
         //public string reply_markup { get; set; }
     }
 
-    public class From
+    public class User
     {
         [JsonProperty("id")]
         public int Id { get; set; }
@@ -172,51 +190,88 @@ namespace TelegramBotConstructor
         public long Height { get; set; }
     }
 
+    /// <summary>
+    /// This object represents changes in the status of a chat member.
+    /// </summary>
+    public class ChatMemberUpdated
+    {
+        /// <summary>
+        /// Chat the user belongs to
+        /// </summary>
+        [JsonProperty("chat")]       
+        public Chat Chat { get; set; }
+        /// <summary>
+        /// Performer of the action, which resulted in the change
+        /// </summary>
+        [JsonProperty("from")]
+        public User From { get; set; }
+        /// <summary>
+        /// Date the request was sent in Unix time
+        /// </summary>
+        [JsonProperty("date")]
+        public int Date { get; set; }
+        /// <summary>
+        /// Previous information about the chat member
+        /// </summary>
+        [JsonProperty("old_chat_member")]
+        public ChatMember OldChatMember { get; set; }
+        /// <summary>
+        /// New information about the chat member
+        /// </summary>
+        [JsonProperty("new_chat_member")]
+        public ChatMember NewChatMember { get; set; }
+    }
 
-    //public class From2
-    //{
-    //    public int id { get; set; }
-    //    public bool is_bot { get; set; }
-    //    public string first_name { get; set; }
-    //    public string language_code { get; set; }
-    //}
+    /// <summary>
+    /// This object contains information about one member of a chat.
+    /// </summary>
+    [JsonConverter(typeof(JsonSubtypes), "Status")]
+    [JsonSubtypes.KnownSubType(typeof(ChatMemberOwner), "creator")]
+    [JsonSubtypes.KnownSubType(typeof(ChatMemberAdministrator), "administrator")]
+    [JsonSubtypes.KnownSubType(typeof(ChatMemberMember), "member")]
+    [JsonSubtypes.KnownSubType(typeof(ChatMemberRestricted), "restricted")]
+    [JsonSubtypes.KnownSubType(typeof(ChatMemberLeft), "left")]
+    [JsonSubtypes.KnownSubType(typeof(ChatMemberBanned), "kicked")]
 
-    //public class From3
-    //{
-    //    public int id { get; set; }
-    //    public bool is_bot { get; set; }
-    //    public string first_name { get; set; }
-    //    public string username { get; set; }
-    //}
+    public class ChatMember
+    {
+        public string Status { get; set; }
+        public User User { get; set; }
 
-    //public class Chat2
-    //{
-    //    public int id { get; set; }
-    //    public string first_name { get; set; }
-    //    public string type { get; set; }
-    //}
+    }
 
-    //public class Entity
-    //{
-    //    public int offset { get; set; }
-    //    public int length { get; set; }
-    //    public string type { get; set; }
-    //}
+    public class ChatMemberOwner : ChatMember 
+    {
 
-    //public class ReplyMarkup
-    //{
-    //    //public List<List<>> inline_keyboard { get; set; }
-    //}
+    }
+
+    public class ChatMemberAdministrator : ChatMember
+    {
+
+    }
+
+    public class ChatMemberMember : ChatMember
+    {
+
+    }
+
+    public class ChatMemberRestricted : ChatMember
+    {
+
+    }
+
+    public class ChatMemberLeft : ChatMember
+    {
+    }
+
+    public class ChatMemberBanned : ChatMember
+    {
+
+    }
 
 
-    //public class Message2
-    //{
-    //    public int message_id { get; set; }
-    //    public From from { get; set; }
-    //    public Chat chat { get; set; }
-    //    public int date { get; set; }
-    //    public string text { get; set; }
-    //    public List<Entity> entities { get; set; }
-    //   // public ReplyMarkup reply_markup { get; set; }
-    //}
+
+
+
+
 }

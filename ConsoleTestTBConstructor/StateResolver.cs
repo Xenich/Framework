@@ -6,7 +6,6 @@ namespace ConsoleTestTBConstructor
 {
     class StateResolver : IStateResolver
     {
-        //Guid currentState;
         Dictionary<int, Guid> chatIdToCurrentStateDic = new Dictionary<int, Guid>();
 
         public Guid InlineMessageResolve(Update update)
@@ -48,19 +47,19 @@ namespace ConsoleTestTBConstructor
             }
         }
 
-        public void SetCurrentState(Update update, Guid currentState)
+        public void SetNewCurrentState(Update update, Guid defaultNextStateUid)
         {
-            SetUserCurrentState(update, currentState);
+            SetUserCurrentState(update, defaultNextStateUid);
         }
 
-        private void SetUserCurrentState(Update update, Guid currentState)
+        private void SetUserCurrentState(Update update, Guid defaultNextStateUid)
         {
             int chatId = update.GetChatId();
             if (chatIdToCurrentStateDic.ContainsKey(chatId))
-                chatIdToCurrentStateDic[chatId] = currentState;
+                chatIdToCurrentStateDic[chatId] = defaultNextStateUid;
             else
             {
-                chatIdToCurrentStateDic.Add(chatId, currentState);
+                chatIdToCurrentStateDic.Add(chatId, defaultNextStateUid);
             }
         }
     }

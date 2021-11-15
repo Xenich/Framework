@@ -36,7 +36,7 @@ namespace TelegramBotConstructor
         /// Метод, устанавливающий новое текущее состояние конечного автомата, вызывается после обработки текущего состояния.
         /// </summary>
         /// <param name="update">Сообщение от пользователя</param>
-        /// <param name="currentState">Идентификатор сосояния</param>
-        void SetCurrentState(Update update, Guid currentState);
+        /// <param name="defaultNextStateUid">Идентификатор сосояния</param>
+        void SetNewCurrentState(Update update, Guid defaultNextStateUid);
     }
 }
