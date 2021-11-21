@@ -20,7 +20,7 @@ namespace TelegramBotConstructor.StateHandlers
 
             if (keyboardState.tryDeletePrevKeyboard == TryDeletePrevKeyboard.YES)
             {
-                if (update.IsCallbackQueryMessage())
+                if (update.Type == UpdateTypes.CallbackQuery)
                 {
                     BotHelper.EditMessageText(getMessage(update), update.GetChatId(), update.GetCallbackQueryMessageId(), keyboard, botToken);
                 }
@@ -37,7 +37,7 @@ namespace TelegramBotConstructor.StateHandlers
 
             if (keyboardState.tryDeletePrevKeyboard == TryDeletePrevKeyboard.YES)
             {
-                if (update.IsCallbackQueryMessage())
+                if (update.Type == UpdateTypes.CallbackQuery)
                 {
                     return await BotHelper.EditMessageTextWithResponceAsync(getMessage(update), update.GetChatId(), update.GetCallbackQueryMessageId(), keyboard, botToken);
                 }

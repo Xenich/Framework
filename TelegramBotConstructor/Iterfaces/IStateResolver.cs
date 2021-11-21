@@ -12,7 +12,7 @@ namespace TelegramBotConstructor
     public interface IStateResolver
     {
         /// <summary>
-        /// Метод определения состояния при получении простого сообщения, введённого пользователе вручную или из reply-клавиатуры
+        /// Метод определения состояния при получении простого сообщения, введённого пользователе вручную или из reply-клавиатуры или медиасообщения (фото, видео, голос, документ и т.д.)
         /// </summary>
         /// <param name="update">Сообщение от пользователя</param>
         /// <returns>Идентификатор состояния</returns>
@@ -24,13 +24,6 @@ namespace TelegramBotConstructor
         /// <param name="update">Сообщение от пользователя</param>
         /// <returns>Идентификатор состояния</returns>
         Guid InlineMessageResolve(Update update);
-
-        /// <summary>
-        /// Метод определения состояния при получении фотосообщения
-        /// </summary>
-        /// <param name="update">Сообщение от пользователя</param>
-        /// <returns>Идентификатор состояния</returns>
-        Guid PhotoMessageResolve(Update update);
 
         /// <summary>
         /// Метод, устанавливающий новое текущее состояние конечного автомата, вызывается после обработки текущего состояния.

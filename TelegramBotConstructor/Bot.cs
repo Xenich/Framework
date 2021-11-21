@@ -30,8 +30,9 @@ namespace TelegramBotConstructor
         /// <summary>
         /// Определение состояния конечного автомата
         /// </summary>
-        internal readonly IStateResolver _stateResolver;
-                                                   
+        internal readonly IStateResolver _userDefinedStateResolver;
+        private readonly IncomingUpdatesQueueMultiThreadHandler incomingUpdatesQueueMultiThreadHandler;
+
         internal bool IsWebhook { private get;  set; }
         internal int Interval { private get; set; }
 
@@ -99,7 +100,8 @@ namespace TelegramBotConstructor
                 isNeedLogging = true;
                 _logger = logger;
             }
-            _stateResolver = stateResolver;
+            _userDefinedStateResolver = stateResolver;
+            incomingUpdatesQueueMultiThreadHandler = new IncomingUpdatesQueueMultiThreadHandler(this);
         }
 
         /// <summary>
@@ -150,7 +152,6 @@ namespace TelegramBotConstructor
                 Uri baseaddress = new Uri(baseTelegramAddress);
                 using (HttpClient client = new HttpClient())
                 {
-                    Log("трулала");
                     client.BaseAddress = baseaddress;
                     while (!cancellationToken.IsCancellationRequested)
                     {
@@ -161,15 +162,7 @@ namespace TelegramBotConstructor
                             byte[] bytes = await client.GetByteArrayAsync(url);
                             string respText = Encoding.UTF8.GetString(bytes);
                             Response resp = Newtonsoft.Json.JsonConvert.DeserializeObject<Response>(respText);
-                            if (resp.Ok && resp.Updates.Count > 0)
-                            {
-                                for (int i = 0; i < resp.Updates.Count; i++)
-                                {
-                                    lastUpdate = resp.Updates[i].UpdateId;
-                                    HandleMessageFromTelegramAsync(resp.Updates[i]);
-                                }
-                                lastUpdate++;
-                            }
+                            AddUdatesToQueue(resp);
                         }
                         catch (Exception ex)
                         {
@@ -186,6 +179,37 @@ namespace TelegramBotConstructor
                 LogError(ex.Message);
             }
         }
+
+        public void AddUdatesToQueue(Response incomingUpdates)
+        {
+            if (incomingUpdates.Ok && incomingUpdates.Updates.Count > 0)
+            {
+                for (int i = 0; i < incomingUpdates.Updates.Count; i++)
+                {
+                    lastUpdate = incomingUpdates.Updates[i].UpdateId;
+                    HandleMessageFromTelegramAsync(incomingUpdates.Updates[i]);
+                }
+                lastUpdate++;
+            }
+        }
+
+        /// <summary>
+        /// Обработчик сообщения от юзера
+        /// </summary>
+        /// <param name="update">Объект сообщения</param>
+        async Task HandleMessageFromTelegramAsync(Update update)
+        {
+            try
+            {
+                MessageHandler messageHandler = MessageHandlerFactory.CreateHandler(update, this);
+                await messageHandler.Handle();
+            }
+            catch (Exception ex)
+            {
+                LogError(ex.Message);
+            }
+        }
+
 
         /// <summary>
         /// Добавить состояние в словари состояний. Состояние должно иметь уникальный идентификатор и имя
@@ -207,22 +231,7 @@ namespace TelegramBotConstructor
             return true;
         }
 
-        /// <summary>
-        /// Обработчик сообщения от юзера
-        /// </summary>
-        /// <param name="update">Объект сообщения</param>
-        async Task HandleMessageFromTelegramAsync(Update update)
-        {
-            try
-            {
-                MessageHandler messageHandler = MessageHandlerFactory.CreateHandler(update, this);
-                await messageHandler.Handle();
-            }
-            catch (Exception ex)
-            {
-                LogError(ex.Message);
-            }
-        }
+
 
 
         //This object represents an incoming callback query from a callback button in an inline keyboard

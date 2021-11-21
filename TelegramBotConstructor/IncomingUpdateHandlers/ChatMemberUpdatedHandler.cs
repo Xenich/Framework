@@ -15,12 +15,12 @@ namespace TelegramBotConstructor.MessageHandlers
 
         internal override async Task Handle()
         {
-            if (update.ChatMemberUpdated.NewChatMember.Status == "kicked")
+            if (update.MyChatMember.NewChatMember.Status == "kicked")
             {
                 if (bot.BotKickedEventHandler != null)
                     bot.BotKickedEventHandler(update);
             }
-            if (update.ChatMemberUpdated.NewChatMember.Status == "member")
+            if (update.MyChatMember.NewChatMember.Status == "member")
             {
                 if (bot.BotAddedEventHandler != null)
                     bot.BotAddedEventHandler(update);

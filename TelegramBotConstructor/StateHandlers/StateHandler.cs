@@ -49,8 +49,8 @@ namespace TelegramBotConstructor.StateHandlers
         {
             if (IsNeedCallbackQueryNotification)
             {
-                if(update.IsCallbackQueryMessage())
-                    BotHelper.AnswerCallbackQuery(CallbackQueryNotificationText, update.GetCallbackQueryId(), botToken);
+                if(update.Type == UpdateTypes.CallbackQuery)
+                    BotHelper.AnswerCallbackQuery(CallbackQueryNotificationText, update.CallbackQuery.Id, botToken);
             }
         }
         protected void HideReplyKeyboard(Update update)

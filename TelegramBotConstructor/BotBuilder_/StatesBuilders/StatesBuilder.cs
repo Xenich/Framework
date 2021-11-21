@@ -65,8 +65,11 @@ namespace TelegramBotConstructor.StatesBuilders
         /// <param name="keyboardGenerator">Делегат на функцию генератора клавиатуры</param>
         /// <param name="tryDeletePrevKeyboard">Нужно ли пытаться удалить предыдущее сообщение. NO по умолчанию</param> 
         /// <returns>DinamicInlineKeyboardBuilderStart</returns>
-        public StateBuilderStart AddDynamicInlineState(string name, string description, Guid uid, Func<Update, string> getMessage
-                                                        , Action<Update> handler, Guid defaultNextStateUid, Func<Update, DynamicInlineKeyboardBuilder> keyboardGenerator, TryDeletePrevKeyboard tryDeletePrevKeyboard = TryDeletePrevKeyboard.NO)
+        public StateBuilderStart AddDynamicInlineState(string name, string description, Guid uid, 
+                                                        Func<Update, string> getMessage, Action<Update> handler,
+                                                        Guid defaultNextStateUid,
+                                                        Func<Update, DynamicInlineKeyboardBuilder> keyboardGenerator,
+                                                        TryDeletePrevKeyboard tryDeletePrevKeyboard = TryDeletePrevKeyboard.NO)
         {
             DynamicInlineState state = new DynamicInlineState(name, description, uid, getMessage, handler, bot.Token, defaultNextStateUid, keyboardGenerator, tryDeletePrevKeyboard);
 
@@ -93,8 +96,11 @@ namespace TelegramBotConstructor.StatesBuilders
         /// <param name="keyboardGenerator">Делегат на функцию генератора клавиатуры</param>
         /// <param name="tryDeletePrevKeyboard">Нужно ли пытаться удалить предыдущее сообщение, если оно поступило из inline-клавиатуры. NO по умолчанию</param>
         /// <returns></returns>
-        public StateBuilderStart AddDynamicReplyState(string name, string description, Guid uid, Func<Update, string> getMessage
-                                                      , Action<Update> handler, Guid defaultNextStateUid, Func<Update, DynamicReplyKeyboardBuilder> keyboardGenerator, TryDeletePrevKeyboard tryDeletePrevKeyboard = TryDeletePrevKeyboard.NO)
+        public StateBuilderStart AddDynamicReplyState(string name, string description, Guid uid, 
+                                                        Func<Update, string> getMessage,
+                                                        Action<Update> handler, Guid defaultNextStateUid,
+                                                        Func<Update, DynamicReplyKeyboardBuilder> keyboardGenerator,
+                                                        TryDeletePrevKeyboard tryDeletePrevKeyboard = TryDeletePrevKeyboard.NO)
         {
             DynamicReplyState state = new DynamicReplyState(name, description, uid, getMessage, handler, bot.Token, defaultNextStateUid, keyboardGenerator, tryDeletePrevKeyboard );
 
@@ -119,8 +125,10 @@ namespace TelegramBotConstructor.StatesBuilders
         /// <param name="handler">Обработчик состояния</param>
         /// <param name="nextStateUid">Идентификатор следующего состояния</param>
         /// <param name="tryDeletePrevKeyboard">Нужно ли пытаться удалить предыдущее сообщение, если оно поступило из inline-клавиатуры. NO по умолчанию</param>
-        public FixedReplyStateBuilderStart AddFixedReplyState(string name, string description, Guid uid, Func<Update, string> getMessage
-                                                              , Action<Update> handler, Guid nextStateUid, TryDeletePrevKeyboard tryDeletePrevKeyboard = TryDeletePrevKeyboard.NO)
+        public FixedReplyStateBuilderStart AddFixedReplyState(string name, string description, Guid uid,
+                                                                Func<Update, string> getMessage,
+                                                                Action<Update> handler, Guid nextStateUid,
+                                                                TryDeletePrevKeyboard tryDeletePrevKeyboard = TryDeletePrevKeyboard.NO)
         {
             FixedReplyState replyState = new FixedReplyState(name, description, uid, getMessage, handler, bot.Token, nextStateUid, tryDeletePrevKeyboard);
 

@@ -22,37 +22,43 @@ namespace ConsoleTestTBConstructor
 
         }
 
-        public Guid PhotoMessageResolve(Update update)
-        {
-            return Program.stateNameToGuidDic["name1"]; 
-        }
-
-
-
         public Guid SimpleMessageResolve(Update update)
         {
             int chatId = update.GetChatId();
-
-            string message = update.GetMessageText();
-            if (message == "/start")
-                return Program.stateNameToGuidDic["name2"];
-            if (message == "666")
-                return Program.stateNameToGuidDic["name1"];
-            else
+            Guid guid = Guid.Empty;
+            if (update.Message.Type == MessageTypes.Text)
             {
-                if (chatIdToCurrentStateDic.ContainsKey(chatId))
-                    return chatIdToCurrentStateDic[chatId];
+                string message = update.GetMessageText();
+                if (message == "/start")
+                    return Program.stateNameToGuidDic["name2"];
+                if (message == "666")
+                    return Program.stateNameToGuidDic["name1"];
                 else
-                    return Program.stateNameToGuidDic["name2"]; 
+                {
+                    if (chatIdToCurrentStateDic.ContainsKey(chatId))
+                        return chatIdToCurrentStateDic[chatId];
+                    else
+                        return Program.stateNameToGuidDic["name2"];
+                }
             }
+
+            if (update.Message.Type == MessageTypes.Photo)
+            {
+                string message = update.GetMessageText();
+                if (message == "/start")
+                    return Program.stateNameToGuidDic["name2"];
+                else
+                    return Program.stateNameToGuidDic["name1"];
+            }
+
+
+            if (chatIdToCurrentStateDic.ContainsKey(chatId))
+                return chatIdToCurrentStateDic[chatId];
+            else
+                return Program.stateNameToGuidDic["name2"];
         }
 
         public void SetNewCurrentState(Update update, Guid defaultNextStateUid)
-        {
-            SetUserCurrentState(update, defaultNextStateUid);
-        }
-
-        private void SetUserCurrentState(Update update, Guid defaultNextStateUid)
         {
             int chatId = update.GetChatId();
             if (chatIdToCurrentStateDic.ContainsKey(chatId))

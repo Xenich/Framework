@@ -31,7 +31,7 @@ namespace TelegramBotConstructor.MessageHandlers
                 await StateHandler(update, chatId, currentState);
 
                 // 3. Устанавливаем новое текущее состояние
-                bot._stateResolver.SetNewCurrentState(update, currentState.DefaultNextStateUid);
+                bot._userDefinedStateResolver.SetNewCurrentState(update, currentState.DefaultNextStateUid);
 
                 // 4. Конец обработки сообщения
                 bot.Log(string.Format("HandleMessageFromTelegram: update_id = {0}", update.UpdateId));
@@ -50,21 +50,17 @@ namespace TelegramBotConstructor.MessageHandlers
         private Guid ResolveStateUid(Update update)
         {
             Guid stateUid = Guid.Empty;
-            if (update.IsPhotoMessage())            // пришло фото
+
+            if (update.Type == UpdateTypes.Message)           // пришло сообщение, введенное пользователем
             {
-                stateUid = bot._stateResolver.PhotoMessageResolve(update);
+                stateUid = bot._userDefinedStateResolver.SimpleMessageResolve(update);
             }
-            if (update.IsSimpleMessage())           // пришло сообщение, введенное пользователем
-            {
-                stateUid = bot._stateResolver.SimpleMessageResolve(update);
-            }
-            if (update.IsCallbackQueryMessage())    // пришло сообщение от inline-клавиатуры
+            if (update.Type == UpdateTypes.CallbackQuery)     // пришло сообщение от inline-клавиатуры
             {
                 if (bot.IsCustomInlineStateResolver)            // выбираем кастомный или стандартный resolver состояния
-                    stateUid = bot._stateResolver.InlineMessageResolve(update);
+                    stateUid = bot._userDefinedStateResolver.InlineMessageResolve(update);
                 else
                     stateUid = StandartResolveInlineState(update.CallbackQuery.Data);
-
             }
             return stateUid;
         }
