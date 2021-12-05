@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace TelegramBotConstructor
 {
     /// <summary>
-    /// Интерфейс для оперделения состояния конечного автомата при получении разного типа сообщений от пользователя
+    /// Интерфейс для определения состояния конечного автомата при получении разного типа сообщений от пользователя
     /// </summary>
     public interface IStateResolver
     {
@@ -29,7 +29,7 @@ namespace TelegramBotConstructor
         /// Метод, устанавливающий новое текущее состояние конечного автомата, вызывается после обработки текущего состояния.
         /// </summary>
         /// <param name="update">Сообщение от пользователя</param>
-        /// <param name="defaultNextStateUid">Идентификатор сосояния</param>
+        /// <param name="defaultNextStateUid">Идентификатор следующего состояния по умолчанию</param>
         void SetNewCurrentState(Update update, Guid defaultNextStateUid);
     }
 }

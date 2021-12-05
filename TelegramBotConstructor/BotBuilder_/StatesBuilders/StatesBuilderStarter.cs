@@ -48,5 +48,16 @@ namespace TelegramBotConstructor.StatesBuilders
             bot.BotAddedEventHandler = botAddedEventHandler;
             return this;
         }
+
+        /// <summary>
+        /// Установить необходимость обрабатывать сообщения в порядке их поступления. По умолчанию - false.
+        /// </summary>
+        /// <param name="value">true - каждое следующее сообщение будет ожидать обработки предыдущего</param>
+        /// <returns></returns>
+        public StatesBuilderStarter SetIsNeedHandleMessagesInApearenceOrder(bool value)
+        {
+            bot.IsNeedHandleMessagesInApearenceOrder = value;
+            return this;
+        }
     }
 }

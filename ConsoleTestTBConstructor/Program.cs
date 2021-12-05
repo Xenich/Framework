@@ -35,16 +35,16 @@ namespace ConsoleTestTBConstructor
 
             IStateResolver stateResolver = new StateResolver();
 
-            Guid inlineState_1UID = Guid.NewGuid();
-            Guid inlineState_2UID = Guid.NewGuid();
-            Guid inlineState_3UID = Guid.NewGuid();
-            Guid textState_1UID = Guid.NewGuid();
-            Guid textState_2UID = Guid.NewGuid();
-            Guid dynamicState_1UID = Guid.NewGuid();
-            Guid replyState_1UID = Guid.NewGuid();
-            Guid replyDynamicState_1UID = Guid.NewGuid();
+            Guid inlineState_1UID = Guid.Parse("11111111111111111111111111111111");
+            Guid inlineState_2UID = Guid.Parse("22222222222222222222222222222222");
+            Guid inlineState_3UID = Guid.Parse("33333333333333333333333333333333");
+            Guid textState_1UID = Guid.Parse("44444444444444444444444444444444");
+            Guid textState_2UID = Guid.Parse("55555555555555555555555555555555");
+            Guid dynamicState_1UID = Guid.Parse("66666666666666666666666666666666");
+            Guid replyState_1UID = Guid.Parse("77777777777777777777777777777777");
+            Guid replyDynamicState_1UID = Guid.Parse("88888888888888888888888888888888");
 
-            
+
             stateNameToGuidDic.Add(StateNames.name1.ToString(), inlineState_1UID);
             stateNameToGuidDic.Add(StateNames.name2.ToString(), inlineState_2UID);
             stateNameToGuidDic.Add(StateNames.name3.ToString(), inlineState_3UID);
@@ -109,6 +109,7 @@ namespace ConsoleTestTBConstructor
                     .SetInternalHandlerWebHook(1000)
                     .SetBotKickedEventHandler(botKickedHandler)
                     .SetBotAddedEventHandler((upd)=> { logger.LogWarning("Бот был добавлен" + upd.UpdateId.ToString()); })
+                    .SetIsNeedHandleMessagesInApearenceOrder(true)
                     .BeginAddStates
                         //.SetCustomInlineStateResolver
                         .AddFixedInlineState(StateNames.name1.ToString(), "description", inlineState_1UID, (upd) => "chatId=" + upd.GetChatId().ToString() + ": message NAME1", null, inlineState_1UID, TryDeletePrevKeyboard.YES)

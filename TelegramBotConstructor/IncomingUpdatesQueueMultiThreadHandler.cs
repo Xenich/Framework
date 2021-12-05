@@ -9,7 +9,7 @@ namespace TelegramBotConstructor
 {
     class IncomingUpdatesQueueMultiThreadHandler
     {
-
+        /*
         private ConcurrentQueue<Update> updatesQueue;
         private Bot bot;
 
@@ -31,6 +31,6 @@ namespace TelegramBotConstructor
 
 
         }
-
+        */
     }
 }

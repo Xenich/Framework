@@ -17,8 +17,8 @@ namespace TelegramBotConstructor.MessageHandlers
         {
             int chatId = update.GetChatId();
 
-                // 0. Определяем сначала, нужно ли вообще обрабатывать сообщение
-            if (bot.CheckIfPreviousInlineMessage(chatId, update))
+                // 0. Определяем сначала, нужно ли вообще обрабатывать сообщение (если оно - инлайн)
+            if (bot.CheckIfPreviousInlineMessage(chatId, update) )
                 return;
 
                 // 1. Определяем текущее состояние
@@ -41,6 +41,7 @@ namespace TelegramBotConstructor.MessageHandlers
 
             return;
         }
+     
 
         /// <summary>
         /// Определение идентификатора текущего состояния

@@ -83,6 +83,8 @@ namespace TelegramBotConstructor
             set { editedMessage = value; Type = UpdateTypes.EditedMessage; }
         }
 
+
+//**********************************************************************************
         public int GetChatId()
         {
             switch (this.Type)
@@ -99,14 +101,6 @@ namespace TelegramBotConstructor
                 default:
                     return 0;
             }
-
-
-            if (Type == UpdateTypes.CallbackQuery)
-                return CallbackQuery.From.Id;
-            if (Type == UpdateTypes.MyChatMember)
-                return MyChatMember.From.Id;
-            else
-                return Message.From.Id;
         }
 
         public string GetMessageText()
