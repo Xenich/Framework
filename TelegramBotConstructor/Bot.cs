@@ -263,7 +263,7 @@ namespace TelegramBotConstructor
         {
             try
             {
-                await Task.Delay(2000);
+                //await Task.Delay(2000);
                 MessageHandler messageHandler = MessageHandlerFactory.CreateHandler(update, this);
                 await messageHandler.Handle();
                 

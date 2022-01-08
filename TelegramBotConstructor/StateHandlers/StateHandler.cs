@@ -31,7 +31,7 @@ namespace TelegramBotConstructor.StateHandlers
         internal bool IsNeedCallbackQueryNotification { get; set; }
 
         /// <summary>
-        /// Нужно ли пытаться спрятать reply-клавиатуру (в случае, если предполагается ппадние на этот state после reply-клавиатуры )
+        /// Нужно ли пытаться спрятать reply-клавиатуру (в случае, если предполагается попадние на этот state после reply-клавиатуры )
         /// </summary>
         internal bool IsNeedTryHideReplyKeyboard { get; set; }
 
@@ -53,6 +53,7 @@ namespace TelegramBotConstructor.StateHandlers
                     BotHelper.AnswerCallbackQuery(CallbackQueryNotificationText, update.CallbackQuery.Id, botToken);
             }
         }
+
         protected void HideReplyKeyboard(Update update)
         {
             if (IsNeedTryHideReplyKeyboard)

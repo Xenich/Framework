@@ -35,7 +35,7 @@ namespace TelegramBotConstructor.MessageHandlers
                 case UpdateTypes.ChosenInlineResult:
                     messageHandler = new UnknownMessageTypeHandler(update, bot);
                     break;
-                case UpdateTypes.CallbackQuery:
+                case UpdateTypes.CallbackQuery:                                         // нажатие на кнопку inline-клавиатуры
                     messageHandler = new MainHandler(update, bot);
                     break;
                 case UpdateTypes.ShippingQuery:
