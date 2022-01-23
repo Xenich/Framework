@@ -60,6 +60,10 @@ namespace TelegramBotConstructor.MessageHandlers
                     else
                         stateUid = StandartResolveInlineState(update.CallbackQuery.Data);
                 break;
+
+                default:
+                    stateUid = bot._userDefinedStateResolver.SimpleMessageResolve(update);
+                break;
             }            
             return stateUid;
         }

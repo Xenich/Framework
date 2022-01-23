@@ -31,16 +31,15 @@ namespace TelegramBotConstructor
     /// </summary>
     public class Update
     {
-        public  UpdateTypes Type { get; private set; } = UpdateTypes.Unknown; 
-
-        [JsonProperty("update_id")]
-        public int UpdateId { get; set; }
-
-
         private Message message;
         private CallbackQuery callbackQuery;
         private ChatMemberUpdated chatMemberUpdated;
         private Message editedMessage;
+
+        public  UpdateTypes Type { get; private set; } = UpdateTypes.Unknown; 
+
+        [JsonProperty("update_id")]
+        public int UpdateId { get; set; }
 
         /// <summary>
         /// New incoming message of any kind — text, photo, sticker, etc.
@@ -109,11 +108,11 @@ namespace TelegramBotConstructor
             {
                 if (message.Type == MessageTypes.Text)
                     return message.Text;
-                if (message.Type == MessageTypes.Animation ||
-                    message.Type == MessageTypes.Audio ||
-                    message.Type == MessageTypes.Document ||
-                    message.Type == MessageTypes.Photo ||
-                    message.Type == MessageTypes.Video ||
+                if (message.Type == MessageTypes.Animation  ||
+                    message.Type == MessageTypes.Audio      ||
+                    message.Type == MessageTypes.Document   ||
+                    message.Type == MessageTypes.Photo      ||
+                    message.Type == MessageTypes.Video      ||
                     message.Type == MessageTypes.Voice)
                     return message.Caption;
             }
