@@ -24,7 +24,7 @@ namespace TelegramBotConstructor.StatesBuilders
         /// <param name="nextStateUid">Идентификатор следующего состояния (состояние по умолчанию - если пользователь не нажал кнопку, а ввёл сообщение)</param>
         /// <param name="tryDeletePrevKeyboard">Нужно ли пытаться удалить предыдущее сообщение. NO по умолчанию</param>
         /// <returns>InlineKeyboardBuilderStart</returns>
-        public FixedInlineStateBuilder_Start AddFixedInlineState(string name, string description, Guid uid, Func<Update, string> getMessage, Action<Update> handler, Guid nextStateUid, TryDeletePrevKeyboard tryDeletePrevKeyboard = TryDeletePrevKeyboard.NO)
+        public FixedInlineStateBuilder_Start AddFixedInlineState(string name, string description, Guid uid, Func<Update, string> getMessage, Action<Update> handler, Guid nextStateUid, TryDeletePrevKeyboard tryDeletePrevKeyboard)
         {
             FixedInlineState inlineState = new FixedInlineState(name, description, uid, getMessage, handler, bot.Token, nextStateUid, tryDeletePrevKeyboard);
 

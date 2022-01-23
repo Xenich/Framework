@@ -74,13 +74,13 @@ namespace TelegramBotConstructor.BotGenerator
         }
 
         /// <summary>
-        /// Установить необходимость обрабатывать сообщения в порядке их поступления. По умолчанию - false.
+        /// Установить стратегию обработки сообщений.
         /// </summary>
-        /// <param name="value">true - каждое следующее сообщение будет ожидать обработки предыдущего</param>
+        /// <param name="orderOfUpdatesHandling"></param>
         /// <returns></returns>
-        public NeedToCheckPreviousInlineMessageSetter SetIsNeedHandleMessagesInApearenceOrder(bool value)
+        public NeedToCheckPreviousInlineMessageSetter SetIsNeedHandleMessagesInApearenceOrder(OrderOfUpdatesHandling orderOfUpdatesHandling)
         {
-            bot.IsNeedHandleMessagesInApearenceOrder = value;
+            bot.orderOfUpdatesHandling = orderOfUpdatesHandling;
             NeedToCheckPreviousInlineMessageSetter needToCheckPreviousInlineMessageSetter = new NeedToCheckPreviousInlineMessageSetter(bot);
             return needToCheckPreviousInlineMessageSetter;
         }
@@ -118,7 +118,7 @@ namespace TelegramBotConstructor.BotGenerator
 
         /// <summary>
         /// Установить метод обработки входящих сообщений из inline-клавиатуры
-        /// Standart - Стандартный метод предполагает наличия Guid состояния в первых 32 байтах объекта update.CallbackQuery.Data (при этом метод InlineMessageResolve реализации интерфейса IStateResolver (в случае его наличия) игнорируется).
+        /// Standart - Стандартный метод предполагает наличие Guid состояния в первых 32 байтах объекта update.CallbackQuery.Data (при этом метод InlineMessageResolve реализации интерфейса IStateResolver (в случае его наличия) игнорируется).
         /// Custom - Вместо стандартного метода для определения текущего состояния будет вызываться метод InlineMessageResolve реализации интерфейса IStateResolver.
         /// </summary>
         /// <param name="inlineStateResolver"></param>

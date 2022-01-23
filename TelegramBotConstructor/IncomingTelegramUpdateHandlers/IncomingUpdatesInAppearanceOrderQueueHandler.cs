@@ -6,25 +6,24 @@ using System.Text;
 using System.Threading.Tasks;
 using TelegramBotConstructor.MessageHandlers;
 
-namespace TelegramBotConstructor
+namespace TelegramBotConstructor.IncomingTelegramUpdateHandlers
 {
     /// <summary>
     /// Класс представляет собой очередь сообщений, которая обрабатывается последовательно
     /// </summary>
-    internal class IncomingUpdatesInAppearanceOrderQueueHandler
+    internal class IncomingUpdatesInAppearanceOrderQueueHandler: IncomingTelegramUpdateHandler
     {
-        private readonly Bot bot;
         private ConcurrentQueue<Update> updates = new ConcurrentQueue<Update>();
         private bool isInProcessNow = false;
         private DateTime lastUpdateTime;
 
-        internal IncomingUpdatesInAppearanceOrderQueueHandler(Bot bot)
+        internal IncomingUpdatesInAppearanceOrderQueueHandler(Bot bot):
+            base(bot)
         {
-            this.bot = bot;
             lastUpdateTime = DateTime.Now;
         }
 
-        internal void AddUpdateToQueue(Update update)
+        internal override void AddUpdateToQueue(Update update)
         {
             //Update update = (Update)_update;
 
@@ -34,7 +33,7 @@ namespace TelegramBotConstructor
                 StartHandle();
         }
 
-        async Task StartHandle()
+        private async Task StartHandle()
         {
             isInProcessNow = true;
 
@@ -45,7 +44,7 @@ namespace TelegramBotConstructor
             isInProcessNow = false;
         }
 
-        async Task HandleMessageFromTelegramAsync(Update update)
+        private async Task HandleMessageFromTelegramAsync(Update update)
         {
             try
             {

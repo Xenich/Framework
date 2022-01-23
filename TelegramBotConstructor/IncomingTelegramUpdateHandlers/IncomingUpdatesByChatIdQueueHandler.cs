@@ -5,23 +5,22 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TelegramBotConstructor
+namespace TelegramBotConstructor.IncomingTelegramUpdateHandlers
 {
     /// <summary>
     /// В классе входящие апдейты группируются по chatId в словаре. Каждый chatId ассоциирован со своей очередью сообщений, которая обрабатывается ПОСЛЕДОВАТЕЛЬНО
     /// </summary>
-    class IncomingUpdatesQueueMultiThreadHandler
+    class IncomingUpdatesByChatIdQueueHandler: IncomingTelegramUpdateHandler
     {
-        private readonly Bot bot;
         private readonly ConcurrentDictionary<int, IncomingUpdatesInAppearanceOrderQueueHandler> chatIdToUpdates_Dic = 
             new ConcurrentDictionary<int, IncomingUpdatesInAppearanceOrderQueueHandler>();
 
-        public IncomingUpdatesQueueMultiThreadHandler(Bot bot)
+        public IncomingUpdatesByChatIdQueueHandler(Bot bot):
+            base(bot)
         {
-            this.bot = bot;
         }
 
-        internal void AddUpdateToQueue(Update update)
+        internal override void AddUpdateToQueue(Update update)
         {
             //Update update = (Update)_update;    
 
@@ -36,5 +35,7 @@ namespace TelegramBotConstructor
             }
             incomingUpdatesInAppearanceOrderQueueHandler.AddUpdateToQueue(update);
         }
+
+
     }
 }

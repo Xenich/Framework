@@ -112,15 +112,14 @@ namespace ConsoleTestTBConstructor
                     .StartFlowBuilder(logger, stateResolver)
                     .SetToken("1120463837:AAHEvmnejgfiH7CvnEts9M5TliR-SQdigpc")
                     .SetInternalHandlerWebHook(1000)
-                    .SetIsNeedHandleMessagesInApearenceOrder(false)
-                    .SetIsNeedToCheckPreviousInlineMessage(false)
+                    .SetIsNeedHandleMessagesInApearenceOrder(OrderOfUpdatesHandling.ParallelHandling)
+                    .SetIsNeedToCheckPreviousInlineMessage(true)
                     .SetInlineStateResolver(InlineStateResolver.Standart)
 
                     .SetBotAddedEventHandler((upd)=> { logger.LogWarning("Бот был добавлен" + upd.UpdateId.ToString()); })                    
                     .SetBotKickedEventHandler(botKickedHandler)
 
                     .BeginAddStates
-                        //.SetCustomInlineStateResolver
                         .AddFixedInlineState(StateNames.name1.ToString(), 
                                                 "description", 
                                                 inlineState_1UID, 
@@ -145,7 +144,7 @@ namespace ConsoleTestTBConstructor
                                                 (upd) => "message NAME2",
                                                 null, 
                                                 inlineState_1UID, 
-                                                TryDeletePrevKeyboard.YES)
+                                                TryDeletePrevKeyboard.NO)
                             .WithCallbackQueryNotification("")
                             .TryHideReplyKeyBoard
                             .CreateKeyboard

@@ -38,6 +38,7 @@ namespace TelegramBotConstructor.BotGenerator
         public Bot Build()
         {
             // TODO - установить вебхук, если надо
+            bot.BuildIncomingUpdateHandler();
             return bot;
         }
     }

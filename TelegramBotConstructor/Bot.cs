@@ -15,6 +15,7 @@ using TelegramBotConstructor.Keyboards;
 using TelegramBotConstructor.MessageHandlers;
 using TelegramBotConstructor.States;
 using Newtonsoft.Json;
+using TelegramBotConstructor.IncomingTelegramUpdateHandlers;
 
 namespace TelegramBotConstructor
 {
@@ -52,8 +53,13 @@ namespace TelegramBotConstructor
         /// </summary>
         private readonly Dictionary<int, int> chatIdToCurrentMessageId_dic = new Dictionary<int, int>();
 
-        private readonly IncomingUpdatesInAppearanceOrderQueueHandler incomingUpdatesInAppearanceOrderQueueHandler;
-        private readonly IncomingUpdatesQueueMultiThreadHandler incomingUpdatesQueueMultiThreadHandler;
+        //private readonly IncomingUpdatesInAppearanceOrderQueueHandler incomingUpdatesInAppearanceOrderQueueHandler;
+        //private readonly IncomingUpdatesQueueMultiThreadHandler incomingUpdatesQueueMultiThreadHandler;
+
+        /// <summary>
+        /// Обработчик телеграм-сообщения
+        /// </summary>
+        private IncomingTelegramUpdateHandler incomingUpdateHandler;
 
         internal bool IsWebhook { private get;  set; }
         internal int Interval { private get; set; }
@@ -64,7 +70,7 @@ namespace TelegramBotConstructor
         /// <summary>
         /// Необходимость обрабатывать сообщения в порядке их поступления
         /// </summary>
-        internal bool IsNeedHandleMessagesInApearenceOrder { get; set; } = false;
+        internal OrderOfUpdatesHandling orderOfUpdatesHandling = OrderOfUpdatesHandling.ByChatIdQueueHandling;
 
         /// <summary>
         /// Нужно ли делать проверку на то, послан ли запрос из предыдущей inline-клавиатуры, чтоб отказаться от его обработки в будущем.
@@ -88,8 +94,6 @@ namespace TelegramBotConstructor
 
         internal string Token { get;  set; }
 
-        internal Bot()
-        { }
 
         internal Bot(ILogger logger, IStateResolver stateResolver)
         {
@@ -99,8 +103,24 @@ namespace TelegramBotConstructor
                 _logger = logger;
             }
             _userDefinedStateResolver = stateResolver;
-            incomingUpdatesInAppearanceOrderQueueHandler = new IncomingUpdatesInAppearanceOrderQueueHandler(this);
-            incomingUpdatesQueueMultiThreadHandler = new IncomingUpdatesQueueMultiThreadHandler(this);
+            //incomingUpdatesInAppearanceOrderQueueHandler = new IncomingUpdatesInAppearanceOrderQueueHandler(this);
+            //incomingUpdatesQueueMultiThreadHandler = new IncomingUpdatesQueueMultiThreadHandler(this);
+        }
+
+        internal void BuildIncomingUpdateHandler()
+        {
+            switch (orderOfUpdatesHandling)
+            {
+                case OrderOfUpdatesHandling.ByChatIdQueueHandling:
+                    incomingUpdateHandler = new IncomingUpdatesByChatIdQueueHandler(this);
+                    break;
+                case OrderOfUpdatesHandling.InAppearanceOrderQueueHandling:
+                    incomingUpdateHandler = new IncomingUpdatesInAppearanceOrderQueueHandler(this);
+                    break;
+                case OrderOfUpdatesHandling.ParallelHandling:
+                    incomingUpdateHandler = new IncomingUpdatesParallelHandler(this);
+                    break;
+            }
         }
 
 //********************************************************************************************************
@@ -145,6 +165,10 @@ namespace TelegramBotConstructor
             return false;
         }
 
+
+//******************************************************************************************************************************************
+
+
         /// <summary>
         /// Строитель бота в flow-стиле
         /// </summary>
@@ -181,7 +205,7 @@ namespace TelegramBotConstructor
                             Response incomingUpdates = Newtonsoft.Json.JsonConvert.DeserializeObject<Response>(respText);
                             if (incomingUpdates.Updates != null && incomingUpdates.Updates.Count > 0)
                             {
-                                await HandleUpdates(incomingUpdates);
+                                await HandleMessageFromTelegramAsync(incomingUpdates);
                                 lastUpdate = ++incomingUpdates.Updates.Last().UpdateId;
                             }
                         }
@@ -203,27 +227,30 @@ namespace TelegramBotConstructor
 
 
 
-        public async Task HandleUpdates(Response incomingUpdates)
+        public async Task HandleMessageFromTelegramAsync(Response incomingUpdates)
         {
             for (int i = 0; i < incomingUpdates.Updates.Count; i++)
             {
                 if (!CheckIfPreviousInlineMessage(incomingUpdates.Updates[i].GetChatId(), incomingUpdates.Updates[i]))      //Определяем сначала, нужно ли вообще обрабатывать сообщение(если оно -инлайн)
                 {
+                    incomingUpdateHandler.AddUpdateToQueue(incomingUpdates.Updates[i]);
+
+                    /*
                     if (IsNeedHandleMessagesInApearenceOrder)
                     {
-                        /*
-                        int countOfThreads = 20;
-                        Thread[] threads = new Thread[countOfThreads];
-                        for (int j = 0; j < countOfThreads; j++)
-                        {
+                        
+                        //int countOfThreads = 20;
+                        //Thread[] threads = new Thread[countOfThreads];
+                        //for (int j = 0; j < countOfThreads; j++)
+                        //{
                             
-                            ParameterizedThreadStart parameterizedThreadStart = new ParameterizedThreadStart(incomingUpdatesQueueMultiThreadHandler.AddUpdateToQueue);
-                            Thread thread = new Thread(parameterizedThreadStart);
-                            threads[j] = thread;
-                        }   
-                        foreach(Thread thread1 in threads)
-                            thread1.Start(incomingUpdates.Updates[i]);
-                        */
+                        //    ParameterizedThreadStart parameterizedThreadStart = new ParameterizedThreadStart(incomingUpdatesQueueMultiThreadHandler.AddUpdateToQueue);
+                        //    Thread thread = new Thread(parameterizedThreadStart);
+                        //    threads[j] = thread;
+                        //}   
+                        //foreach(Thread thread1 in threads)
+                        //    thread1.Start(incomingUpdates.Updates[i]);
+                        
 
                         incomingUpdatesInAppearanceOrderQueueHandler.AddUpdateToQueue(incomingUpdates.Updates[i]);
 
@@ -237,72 +264,11 @@ namespace TelegramBotConstructor
 
 
                     }
-                }
-            }
-        }
-
-        
-
-        public async Task AddUdatesToQueue(Response incomingUpdates)
-        {
-            if (incomingUpdates.Ok && incomingUpdates.Updates.Count > 0)
-            {
+                */
                 
-                Queue<Update> updates = new Queue<Update>();
-
-                IEnumerable<IGrouping<int, Update>> messageGroups = incomingUpdates.Updates.GroupBy(u => u.GetChatId());
-                foreach (IGrouping<int, Update> group in messageGroups)
-                {
-                    int groupCounter = 0;
-                    foreach (Update update in group)
-                    {
-                        if (update.Type == UpdateTypes.MyChatMember)
-                        {
-                            updates.Enqueue(update);
-                            break;
-                        }
-                        groupCounter++;
-                        if (groupCounter == group.Count())  // если мы просмотрели все сообщения в группе сообщений этого юзера, то обрабатываем только последнее сообщение
-                            updates.Enqueue(update);
-                    }
-                }
-                
-
-                if (IsNeedHandleMessagesInApearenceOrder)
-                {
-                    for (int i = 0; i < incomingUpdates.Updates.Count; i++)
-                    {
-                        await HandleMessageFromTelegramAsync(incomingUpdates.Updates[i]);
-                    }
-                }
-                else
-                {
-                    for (int i = 0; i < incomingUpdates.Updates.Count; i++)
-                    {
-                        HandleMessageFromTelegramAsync(incomingUpdates.Updates[i]);
-                    }
                 }
             }
-        }
-
-        /// <summary>
-        /// Обработчик сообщения от юзера
-        /// </summary>
-        /// <param name="update">Объект сообщения</param>
-        async Task HandleMessageFromTelegramAsync(Update update)
-        {
-            try
-            {
-                //await Task.Delay(2000);
-                MessageHandler messageHandler = MessageHandlerFactory.CreateHandler(update, this);
-                await messageHandler.Handle();
-                
-            }
-            catch (Exception ex)
-            {
-                LogError(ex.Message);
-            }
-        }
+        }              
 
 
         /// <summary>
