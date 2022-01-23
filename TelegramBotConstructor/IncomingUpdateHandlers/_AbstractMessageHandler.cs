@@ -11,10 +11,13 @@ namespace TelegramBotConstructor.MessageHandlers
         protected Bot bot;
         protected Update update;
 
+        protected int chatId;
+
         internal MessageHandler(Update update, Bot bot)
         {
             this.update = update;
             this.bot = bot;
+            chatId = update.GetChatId();
         }
 
         internal abstract Task Handle();

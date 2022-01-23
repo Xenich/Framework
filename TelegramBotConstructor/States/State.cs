@@ -20,12 +20,12 @@ namespace TelegramBotConstructor.States
 
         protected State(string name, string description, Guid uid, Func<Update, string> getMessage, Guid defaultNextStateUid, TryDeletePrevKeyboard tryDeletePrevKeyboard = TryDeletePrevKeyboard.NO)
         {
+            this.getMessage = getMessage;
+            this.tryDeletePrevKeyboard = tryDeletePrevKeyboard;
             Uid = uid;
             Name = name;
             Description = description;
-            this.getMessage = getMessage;
             DefaultNextStateUid = defaultNextStateUid;
-            this.tryDeletePrevKeyboard = tryDeletePrevKeyboard;
         }
 
     }

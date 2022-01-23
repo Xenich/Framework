@@ -21,9 +21,10 @@ namespace TelegramBotConstructor.StateHandlers
         }
 
         /// <summary>
-        /// Текст, посылаемый юзеру в случае, если на это состояние он попал после нажатия кнопки inline-клавиатуры И если isNeedCallbackQueryNotification == true
+        /// Делегат на функцию, возвращающую текст - всплывающее сообщение после нажатия кнопки инлайн-клавиатуры 
+        /// (если на это состояние он попал после нажатия кнопки inline-клавиатуры И если isNeedCallbackQueryNotification == true)
         /// </summary>
-        internal string CallbackQueryNotificationText { get; set; }
+        internal Func<Update, string> GetCallbackQueryNotificationText { get; set; }
 
         /// <summary>
         /// Нужно ли отправлять ответы на запросы обратного вызова, отправленные с inline-клавиатуры
@@ -50,7 +51,7 @@ namespace TelegramBotConstructor.StateHandlers
             if (IsNeedCallbackQueryNotification)
             {
                 if(update.Type == UpdateTypes.CallbackQuery)
-                    BotHelper.AnswerCallbackQuery(CallbackQueryNotificationText, update.CallbackQuery.Id, botToken);
+                    BotHelper.AnswerCallbackQuery(GetCallbackQueryNotificationText(update), update.CallbackQuery.Id, botToken);
             }
         }
 

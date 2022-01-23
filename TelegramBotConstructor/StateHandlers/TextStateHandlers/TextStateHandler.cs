@@ -14,7 +14,8 @@ namespace TelegramBotConstructor.StateHandlers
         {
             CustomHandlerCall(update);
             //HideReplyKeyboard(update);
-            if(IsNeedTryHideReplyKeyboard)
+            CallbackQueryNotification(update);
+            if (IsNeedTryHideReplyKeyboard)
                 BotHelper.ReplyKeyboardRemove(getMessage(update), update.GetChatId(), botToken);
             else
             BotHelper.SendSimpleMessage(getMessage(update), update.GetChatId(), botToken);

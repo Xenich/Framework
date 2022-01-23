@@ -28,17 +28,6 @@ namespace TelegramBotConstructor.StatesBuilders
         }
 
         /// <summary>
-        /// Установить обработчик события удаления чата с ботом
-        /// </summary>
-        /// <param name="botKickedHandler">Делегат на обработчик</param>
-        /// <returns></returns>
-        public StatesBuilderStarter SetBotKickedEventHandler(Action<Update> botKickedHandler)
-        {
-            bot.BotKickedEventHandler = botKickedHandler;
-            return this;
-        }
-
-        /// <summary>
         /// Установить обработчик события добавления юзером бота
         /// </summary>
         /// <param name="botAddedEventHandler">Делегат на обработчик</param>
@@ -48,16 +37,6 @@ namespace TelegramBotConstructor.StatesBuilders
             bot.BotAddedEventHandler = botAddedEventHandler;
             return this;
         }
-
-        /// <summary>
-        /// Установить необходимость обрабатывать сообщения в порядке их поступления. По умолчанию - false.
-        /// </summary>
-        /// <param name="value">true - каждое следующее сообщение будет ожидать обработки предыдущего</param>
-        /// <returns></returns>
-        public StatesBuilderStarter SetIsNeedHandleMessagesInApearenceOrder(bool value)
-        {
-            bot.IsNeedHandleMessagesInApearenceOrder = value;
-            return this;
-        }
+        
     }
 }

@@ -24,7 +24,14 @@ namespace TelegramBotConstructor.States
         /// <param name="defaultNextStateUid">Идентификатор следующего состояния (состояние по умолчанию - если пользователь не нажал кнопку, а ввёл сообщение с клавиатуры)</param>
         /// <param name="keyboardGenerator">Делегат на функцию генератора клавиатуры</param>
         /// <param name="tryDeletePrevKeyboard">Нужно ли пытаться удалить предыдущее сообщение</param>
-        public DynamicInlineState(string name, string description, Guid uid, Func<Update, string> getMessage, Action<Update> _handler, string botToken, Guid defaultNextStateUid, Func<Update, DynamicInlineKeyboardBuilder> keyboardGenerator, TryDeletePrevKeyboard tryDeletePrevKeyboard)
+        public DynamicInlineState(string name, 
+                                    string description, 
+                                    Guid uid, Func<Update, string> getMessage, 
+                                    Action<Update> _handler, 
+                                    string botToken, 
+                                    Guid defaultNextStateUid, 
+                                    Func<Update, DynamicInlineKeyboardBuilder> keyboardGenerator, 
+                                    TryDeletePrevKeyboard tryDeletePrevKeyboard)
             : base(name, description, uid, getMessage, botToken, defaultNextStateUid, tryDeletePrevKeyboard)
         {
             this.keyboardGenerator = keyboardGenerator;

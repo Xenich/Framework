@@ -13,20 +13,6 @@ namespace TelegramBotConstructor.StatesBuilders
         }
 
         /// <summary>
-        /// Установить свой метод обработки входящих сообщений из inline-клавиатуры вместо стандартного.
-        /// Стандартный метод предполагает наличия Guid состояния в первых 32 байтах объекта update.CallbackQuery.Data (при этом метод InlineMessageResolve реализации интерфейса IStateResolver игнорируется).
-        /// Вместо него для определения текущего состояния будет вызываться метод InlineMessageResolve реализации интерфейса IStateResolver.
-        /// </summary>
-        public StatesBuilder SetCustomInlineStateResolver
-        {
-            get
-            {
-                bot.IsCustomInlineStateResolver = true;
-                return this;
-            }
-        }
-
-        /// <summary>
         /// Метод добавляет состояние конечного автомата с фиксированной inline-клавиатурой.
         /// Сообщение пользователю формируется динамически делегатом getMessage
         /// </summary>

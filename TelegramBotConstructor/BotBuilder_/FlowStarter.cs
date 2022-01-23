@@ -55,13 +55,133 @@ namespace TelegramBotConstructor.BotGenerator
         /// </summary>
         /// <param name="interval">Интервал в милисекундах, через который будет посылаться запрос на API телеграма для получения новых сообщений</param>
         /// <returns></returns>
-        public StatesBuilderStarter SetInternalHandlerWebHook(int interval)
+        public OrderOfMessageHandlingSetter SetInternalHandlerWebHook(int interval)
         {
             bot.IsWebhook = false;
             bot.Interval = interval;
+            OrderOfMessageHandlingSetter orderOfMessageHandlingSetter = new OrderOfMessageHandlingSetter(bot);
+            return orderOfMessageHandlingSetter;
+        }
+    }
+
+
+    public class OrderOfMessageHandlingSetter
+    {
+        Bot bot;
+        internal OrderOfMessageHandlingSetter(Bot bot)
+        {
+            this.bot = bot;
+        }
+
+        /// <summary>
+        /// Установить необходимость обрабатывать сообщения в порядке их поступления. По умолчанию - false.
+        /// </summary>
+        /// <param name="value">true - каждое следующее сообщение будет ожидать обработки предыдущего</param>
+        /// <returns></returns>
+        public NeedToCheckPreviousInlineMessageSetter SetIsNeedHandleMessagesInApearenceOrder(bool value)
+        {
+            bot.IsNeedHandleMessagesInApearenceOrder = value;
+            NeedToCheckPreviousInlineMessageSetter needToCheckPreviousInlineMessageSetter = new NeedToCheckPreviousInlineMessageSetter(bot);
+            return needToCheckPreviousInlineMessageSetter;
+        }
+    }
+
+    public class NeedToCheckPreviousInlineMessageSetter
+    {
+        Bot bot;
+        internal NeedToCheckPreviousInlineMessageSetter(Bot bot)
+        {
+            this.bot = bot;
+        }
+
+        /// <summary>
+        /// Нужно ли делать проверку на то, послан ли запрос из предыдущей inline-клавиатуры, чтоб отказаться от его обработки в будущем.
+        /// Рекомендуется true
+        /// </summary>
+        /// <param name="value">true - Каждое inline-сообщение будет проверяться на то, послано ли оно из устаревшей  inline-клавиатуры и если да, то оно обрабатываться не будет </param>
+        /// <returns></returns>
+        public InlineStateResolverSetter SetIsNeedToCheckPreviousInlineMessage(bool value)
+        {
+            bot.isNeedToCheckPreviousInlineMessage = value;
+            InlineStateResolverSetter inlineStateResolverSetter = new InlineStateResolverSetter(bot);
+            return inlineStateResolverSetter;
+        }
+    }
+
+    public class InlineStateResolverSetter
+    {
+        Bot bot;
+        internal InlineStateResolverSetter(Bot bot)
+        {
+            this.bot = bot;
+        }
+
+        /// <summary>
+        /// Установить метод обработки входящих сообщений из inline-клавиатуры
+        /// Standart - Стандартный метод предполагает наличия Guid состояния в первых 32 байтах объекта update.CallbackQuery.Data (при этом метод InlineMessageResolve реализации интерфейса IStateResolver (в случае его наличия) игнорируется).
+        /// Custom - Вместо стандартного метода для определения текущего состояния будет вызываться метод InlineMessageResolve реализации интерфейса IStateResolver.
+        /// </summary>
+        /// <param name="inlineStateResolver"></param>
+        /// <returns></returns>
+        public BotAddedEventHandler SetInlineStateResolver(InlineStateResolver inlineStateResolver)
+        {
+            if(inlineStateResolver == InlineStateResolver.Custom)                           
+                bot.IsCustomInlineStateResolver = true;
+            else
+                bot.IsCustomInlineStateResolver = false;
+
+            BotAddedEventHandler botAddedEventHandler = new BotAddedEventHandler(bot);
+            return botAddedEventHandler;
+        }        
+    }
+
+    public class BotAddedEventHandler
+    {
+        Bot bot;
+        internal BotAddedEventHandler(Bot bot)
+        {
+            this.bot = bot;
+        }
+
+        /// <summary>
+        /// Установить обработчик события добавления юзером бота
+        /// </summary>
+        /// <param name="botAddedEventHandler">Делегат на обработчик</param>
+        /// <returns></returns>
+        public BotKickedEventHandlerSetter SetBotAddedEventHandler(Action<Update> botAddedEventHandler)
+        {
+            bot.BotAddedEventHandler = botAddedEventHandler;
+            BotKickedEventHandlerSetter botKickedEventHandlerSetter = new BotKickedEventHandlerSetter(bot);
+            return botKickedEventHandlerSetter;
+
+
+        }
+    }
+
+    public class BotKickedEventHandlerSetter
+    {
+        Bot bot;
+        internal BotKickedEventHandlerSetter(Bot bot)
+        {
+            this.bot = bot;
+        }
+
+        /// <summary>
+        /// Установить обработчик события удаления чата с ботом
+        /// </summary>
+        /// <param name="botKickedHandler">Делегат на обработчик</param>
+        /// <returns></returns>
+        public StatesBuilderStarter SetBotKickedEventHandler(Action<Update> botKickedHandler)
+        {
+            bot.BotKickedEventHandler = botKickedHandler;
             StatesBuilderStarter statesBuilderStarter = new StatesBuilderStarter(bot);
             return statesBuilderStarter;
         }
     }
 
+
 }
+
+
+
+

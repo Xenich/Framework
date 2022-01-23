@@ -14,6 +14,7 @@ using TelegramBotConstructor.Iterfaces;
 using TelegramBotConstructor.Keyboards;
 using TelegramBotConstructor.MessageHandlers;
 using TelegramBotConstructor.States;
+using Newtonsoft.Json;
 
 namespace TelegramBotConstructor
 {
@@ -51,9 +52,13 @@ namespace TelegramBotConstructor
         /// </summary>
         private readonly Dictionary<int, int> chatIdToCurrentMessageId_dic = new Dictionary<int, int>();
 
+        private readonly IncomingUpdatesInAppearanceOrderQueueHandler incomingUpdatesInAppearanceOrderQueueHandler;
+        private readonly IncomingUpdatesQueueMultiThreadHandler incomingUpdatesQueueMultiThreadHandler;
+
         internal bool IsWebhook { private get;  set; }
         internal int Interval { private get; set; }
 
+        [JsonProperty("IsCustomInlineStateResolver")]
         internal bool IsCustomInlineStateResolver { get; set; }
 
         /// <summary>
@@ -66,7 +71,8 @@ namespace TelegramBotConstructor
         /// Рекомендуется true
         /// </summary>
         internal bool isNeedToCheckPreviousInlineMessage = true;
-       
+
+        [JsonProperty("BotKickedEventHandler")]
         /// <summary>
         /// Делегат на функцию, обрабатывающую событие удаления юзером чата с ботом
         /// </summary>
@@ -82,6 +88,8 @@ namespace TelegramBotConstructor
 
         internal string Token { get;  set; }
 
+        internal Bot()
+        { }
 
         internal Bot(ILogger logger, IStateResolver stateResolver)
         {
@@ -91,7 +99,8 @@ namespace TelegramBotConstructor
                 _logger = logger;
             }
             _userDefinedStateResolver = stateResolver;
-            //incomingUpdatesQueueMultiThreadHandler = new IncomingUpdatesQueueMultiThreadHandler(this);
+            incomingUpdatesInAppearanceOrderQueueHandler = new IncomingUpdatesInAppearanceOrderQueueHandler(this);
+            incomingUpdatesQueueMultiThreadHandler = new IncomingUpdatesQueueMultiThreadHandler(this);
         }
 
 //********************************************************************************************************
@@ -118,7 +127,7 @@ namespace TelegramBotConstructor
         /// <param name="chatId"></param>
         /// <param name="update"></param>
         /// <returns>true - старое сообщение, обрабатывать не нужно. false - нужно обработать</returns>
-        internal bool CheckIfPreviousInlineMessage(int chatId, Update update)
+        private bool CheckIfPreviousInlineMessage(int chatId, Update update)
         {
             if (update.Type == UpdateTypes.CallbackQuery && isNeedToCheckPreviousInlineMessage)
             {
@@ -160,10 +169,8 @@ namespace TelegramBotConstructor
                 Uri baseaddress = new Uri(baseTelegramAddress);
                 using (HttpClient client = new HttpClient())
                 {      
-                        // Флаг показывает, что порция новых сообщений была обработана (применяется в случае IsNeedHandleMessagesInApearenceOrder = true)     
-                    bool isPortionHandled = true;
                     client.BaseAddress = baseaddress;
-                    while (!cancellationToken.IsCancellationRequested && isPortionHandled)
+                    while (!cancellationToken.IsCancellationRequested )
                     {
                         await Task.Delay(Interval);
                         try
@@ -174,24 +181,7 @@ namespace TelegramBotConstructor
                             Response incomingUpdates = Newtonsoft.Json.JsonConvert.DeserializeObject<Response>(respText);
                             if (incomingUpdates.Updates != null && incomingUpdates.Updates.Count > 0)
                             {
-                                if (IsNeedHandleMessagesInApearenceOrder)
-                                {
-                                    isPortionHandled = false;
-                                    for (int i = 0; i < incomingUpdates.Updates.Count; i++)
-                                    {
-                                        await HandleMessageFromTelegramAsync(incomingUpdates.Updates[i]);
-                                        //Log("test");
-                                    }
-                                    isPortionHandled = true;
-                                }
-                                else
-                                {
-                                    for (int i = 0; i < incomingUpdates.Updates.Count; i++)
-                                    {
-                                        HandleMessageFromTelegramAsync(incomingUpdates.Updates[i]);
-                                        //Log("test");
-                                    }
-                                }
+                                await HandleUpdates(incomingUpdates);
                                 lastUpdate = ++incomingUpdates.Updates.Last().UpdateId;
                             }
                         }
@@ -200,8 +190,6 @@ namespace TelegramBotConstructor
                             if (isNeedLogging)
                                 _logger.LogError(ex.Message);
                             lastUpdate++;
-
-                            isPortionHandled = true;
                         }
                     }
                 }
@@ -213,11 +201,53 @@ namespace TelegramBotConstructor
             }
         }
 
+
+
+        public async Task HandleUpdates(Response incomingUpdates)
+        {
+            for (int i = 0; i < incomingUpdates.Updates.Count; i++)
+            {
+                if (!CheckIfPreviousInlineMessage(incomingUpdates.Updates[i].GetChatId(), incomingUpdates.Updates[i]))      //Определяем сначала, нужно ли вообще обрабатывать сообщение(если оно -инлайн)
+                {
+                    if (IsNeedHandleMessagesInApearenceOrder)
+                    {
+                        /*
+                        int countOfThreads = 20;
+                        Thread[] threads = new Thread[countOfThreads];
+                        for (int j = 0; j < countOfThreads; j++)
+                        {
+                            
+                            ParameterizedThreadStart parameterizedThreadStart = new ParameterizedThreadStart(incomingUpdatesQueueMultiThreadHandler.AddUpdateToQueue);
+                            Thread thread = new Thread(parameterizedThreadStart);
+                            threads[j] = thread;
+                        }   
+                        foreach(Thread thread1 in threads)
+                            thread1.Start(incomingUpdates.Updates[i]);
+                        */
+
+                        incomingUpdatesInAppearanceOrderQueueHandler.AddUpdateToQueue(incomingUpdates.Updates[i]);
+
+                        
+                    }
+                    else
+                    {
+                        incomingUpdatesQueueMultiThreadHandler.AddUpdateToQueue(incomingUpdates.Updates[i]);
+                        //HandleMessageFromTelegramAsync(incomingUpdates.Updates[i]);
+                        //incomingUpdatesInAppearanceOrderQueueHandler.AddUpdatesToQueue(incomingUpdates.Updates[i]);
+
+
+                    }
+                }
+            }
+        }
+
+        
+
         public async Task AddUdatesToQueue(Response incomingUpdates)
         {
             if (incomingUpdates.Ok && incomingUpdates.Updates.Count > 0)
             {
-                /*
+                
                 Queue<Update> updates = new Queue<Update>();
 
                 IEnumerable<IGrouping<int, Update>> messageGroups = incomingUpdates.Updates.GroupBy(u => u.GetChatId());
@@ -236,7 +266,7 @@ namespace TelegramBotConstructor
                             updates.Enqueue(update);
                     }
                 }
-                */
+                
 
                 if (IsNeedHandleMessagesInApearenceOrder)
                 {

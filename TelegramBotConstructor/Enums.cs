@@ -17,4 +17,10 @@ namespace TelegramBotConstructor
         NO,
         YES
     }
+
+    public enum InlineStateResolver
+    {
+        Standart,
+        Custom
+    }
 }

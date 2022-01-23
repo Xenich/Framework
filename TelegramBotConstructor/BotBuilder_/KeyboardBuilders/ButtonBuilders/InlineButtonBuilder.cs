@@ -30,7 +30,7 @@ namespace TelegramBotConstructor.StatesBuilders
         /// </summary>
         /// <param name="gotoStateUid">Идентификатор состояния конечного автомата, которое вызывается данной кнопкой. Записывается в первые 32 байта объекта callback_data</param>
         /// <param name="text">Label text on the button</param>
-        /// <param name="callback_data_33_64">Coding ASCII. Последние 32 байта служебной информации объекта callback_data. 
+        /// <param name="callback_data_33_64">Coding ASCII. Последние 32 байта из 64-х байт служебной информации объекта callback_data. 
         /// callback_data - data to be sent in a callback query to the bot when button is pressed, 1-64 bytes</param>
         public InlineButtonBuilder<K> AddButtonWithStateInCallbackData(Guid gotoStateUid, string text, string callback_data_33_64 = "")
         {

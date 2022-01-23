@@ -6,7 +6,12 @@ namespace TelegramBotConstructor.States
 {
     internal abstract class KeyboardState : State
     {
-        public KeyboardState(string name, string description, Guid uid, Func<Update, string> getMessage, string botToken, Guid defaultNextStateUid, TryDeletePrevKeyboard tryDeletePrevKeyboard) 
+        public KeyboardState(string name, 
+                                string description, 
+                                Guid uid, Func<Update, string> getMessage, 
+                                string botToken, 
+                                Guid defaultNextStateUid, 
+                                TryDeletePrevKeyboard tryDeletePrevKeyboard) 
             : base(name, description, uid, getMessage, defaultNextStateUid, tryDeletePrevKeyboard)
         {         
             stateType = StateType.WithKeyboard;

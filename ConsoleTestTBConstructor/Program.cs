@@ -9,9 +9,14 @@ using System.Collections.Generic;
 
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace ConsoleTestTBConstructor
 {
+    /// <summary>
+    /// ПРИМЕР ГЕНЕРАЦИИ БОТА
+    /// </summary>
+
     class Program
     {
         public static Dictionary<string, Guid> stateNameToGuidDic = new Dictionary<string, Guid>();
@@ -107,13 +112,23 @@ namespace ConsoleTestTBConstructor
                     .StartFlowBuilder(logger, stateResolver)
                     .SetToken("1120463837:AAHEvmnejgfiH7CvnEts9M5TliR-SQdigpc")
                     .SetInternalHandlerWebHook(1000)
+                    .SetIsNeedHandleMessagesInApearenceOrder(false)
+                    .SetIsNeedToCheckPreviousInlineMessage(false)
+                    .SetInlineStateResolver(InlineStateResolver.Standart)
+
+                    .SetBotAddedEventHandler((upd)=> { logger.LogWarning("Бот был добавлен" + upd.UpdateId.ToString()); })                    
                     .SetBotKickedEventHandler(botKickedHandler)
-                    .SetBotAddedEventHandler((upd)=> { logger.LogWarning("Бот был добавлен" + upd.UpdateId.ToString()); })
-                    .SetIsNeedHandleMessagesInApearenceOrder(true)
+
                     .BeginAddStates
                         //.SetCustomInlineStateResolver
-                        .AddFixedInlineState(StateNames.name1.ToString(), "description", inlineState_1UID, (upd) => "chatId=" + upd.GetChatId().ToString() + ": message NAME1", null, inlineState_1UID, TryDeletePrevKeyboard.YES)
-                            .WithCallbackQueryNotification("")
+                        .AddFixedInlineState(StateNames.name1.ToString(), 
+                                                "description", 
+                                                inlineState_1UID, 
+                                                (upd) => "chatId=" + upd.GetChatId().ToString() + ": message NAME1", 
+                                                null, 
+                                                inlineState_1UID, 
+                                                TryDeletePrevKeyboard.NO)
+                            .WithCallbackQueryNotification("name1 CallbackQueryNotification")
                             .CreateKeyboard
                                 .AddRow
                                     .AddButtonWithStateInCallbackData(textState_1UID, "To text state 1")
@@ -123,7 +138,14 @@ namespace ConsoleTestTBConstructor
                                     .AddButtonWithStateInCallbackData(inlineState_3UID, "name3", StateNames.name3.ToString())
                                 .FinishRow
                             .FinishKeyboard
-                         .AddFixedInlineState(StateNames.name2.ToString(), "description2", inlineState_2UID, (upd) => "message NAME2", null, inlineState_1UID, TryDeletePrevKeyboard.YES)
+
+                         .AddFixedInlineState(StateNames.name2.ToString(), 
+                                                "description2", 
+                                                inlineState_2UID, 
+                                                (upd) => "message NAME2",
+                                                null, 
+                                                inlineState_1UID, 
+                                                TryDeletePrevKeyboard.YES)
                             .WithCallbackQueryNotification("")
                             .TryHideReplyKeyBoard
                             .CreateKeyboard
@@ -136,26 +158,38 @@ namespace ConsoleTestTBConstructor
                                     .AddURLButton("facebook.com", "google.com")
                                 .FinishRow
                             .FinishKeyboard
-                        .AddFixedInlineState(StateNames.name3.ToString(), "description2", inlineState_3UID, (upd) => "message NAME3", handler, inlineState_3UID, TryDeletePrevKeyboard.YES)
+
+                        .AddFixedInlineState(StateNames.name3.ToString(), 
+                                                "description2", 
+                                                inlineState_3UID, 
+                                                (upd) => "message NAME3", 
+                                                handler, 
+                                                inlineState_3UID, 
+                                                TryDeletePrevKeyboard.YES)
                             .WithCallbackQueryNotification("Callbackquery Notification Text")
-                            .CreateKeyboard
+                            .CreateKeyboard                               
                                 .AddRow
                                     .AddButtonWithStateInCallbackData(inlineState_1UID, "name1")
                                     .AddButtonWithStateInCallbackData(inlineState_2UID, "name2")
                                     .AddButtonWithStateInCallbackData(replyState_1UID, "TO REPLY")
                                     .AddButtonWithStateInCallbackData(dynamicState_1UID, "К динамике")
                                 .FinishRow
-                            .FinishKeyboard                            
+                            .FinishKeyboard   
+                            
                         .AddTextState(StateNames.name4.ToString(), "description simple text", textState_1UID, (upd) => "chatId=" + upd.GetChatId().ToString() + "Простое текстовое сообщение1", handler1, textState_2UID)
-                            .WithCallbackQueryNotification("Ok")
-                            .Next                        
+                            .WithCallbackQueryNotification((upd)=> { return "Динамическое сообщение. ChatId = " + upd.GetChatId(); })
+                            .Next   
+                            
                         .AddTextState(StateNames.name5.ToString(), "description simple text", textState_2UID, (upd) => "chatId=" + upd.GetChatId().ToString() + "Простое текстовое сообщение2", handler1, inlineState_2UID)
                             .Next
+
                         .AddDynamicInlineState(StateNames.dyamic.ToString(), "", dynamicState_1UID, (upd) => "chatId=" + upd.GetChatId().ToString() + " Динамическое состояние", handler1, inlineState_1UID, dynamicInlineKeyboard_1, TryDeletePrevKeyboard.YES)
                             .WithCallbackQueryNotification("Dynamic Callback Notification")
                             .Next
+
                         .AddDynamicReplyState(StateNames.dynamicRep.ToString(),"descr", replyDynamicState_1UID, (upd)=>"Динамически сформированная Reply-клавиатура", handler1, inlineState_1UID, dynamicReplyKeyboard_1, TryDeletePrevKeyboard.YES)
                             .Next
+
                         .AddFixedReplyState(StateNames.reply.ToString(),"", replyState_1UID, (upd) => "chatId=" + upd.GetChatId().ToString() + "ReplyState!!!", handler1, inlineState_2UID, TryDeletePrevKeyboard.YES)
                             .WithCallbackQueryNotification("CallbackQueryNotification FROM REPLY KEYBOARD")
                             .CreateReplyKeyboard("fieldPlaceholder", true, true)                            
@@ -168,6 +202,7 @@ namespace ConsoleTestTBConstructor
                                     .AddButton("Трулала2")
                                 .FinishRow
                             .FinishKeyboard
+
                     .StopAddStates;
                 
                 if (builder.IsReadyToBuild())
@@ -201,3 +236,5 @@ namespace ConsoleTestTBConstructor
         dynamicRep
     }
 }
+
+

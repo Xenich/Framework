@@ -15,11 +15,7 @@ namespace TelegramBotConstructor.MessageHandlers
 
         internal override async Task Handle()
         {
-            int chatId = update.GetChatId();
-
-                // 0. Определяем сначала, нужно ли вообще обрабатывать сообщение (если оно - инлайн)
-            if (bot.CheckIfPreviousInlineMessage(chatId, update) )
-                return;
+            //int chatId = update.GetChatId();
 
                 // 1. Определяем текущее состояние
             Guid stateUid = ResolveStateUid(update);            // Определяем идентификатор текущего состояния
@@ -28,7 +24,7 @@ namespace TelegramBotConstructor.MessageHandlers
             if (currentState != null)
             {
                 // 2. Вызываем обработчик текущего состояния
-                await StateHandler(update, chatId, currentState);
+                await StateHandler(update, currentState);
 
                 // 3. Устанавливаем новое текущее состояние
                 bot._userDefinedStateResolver.SetNewCurrentState(update, currentState.DefaultNextStateUid);
@@ -41,7 +37,7 @@ namespace TelegramBotConstructor.MessageHandlers
 
             return;
         }
-     
+
 
         /// <summary>
         /// Определение идентификатора текущего состояния
@@ -52,17 +48,19 @@ namespace TelegramBotConstructor.MessageHandlers
         {
             Guid stateUid = Guid.Empty;
 
-            if (update.Type == UpdateTypes.Message)           // пришло сообщение, введенное пользователем
+            switch (update.Type)
             {
-                stateUid = bot._userDefinedStateResolver.SimpleMessageResolve(update);
-            }
-            if (update.Type == UpdateTypes.CallbackQuery)     // пришло сообщение от inline-клавиатуры
-            {
-                if (bot.IsCustomInlineStateResolver)            // выбираем кастомный или стандартный resolver состояния
-                    stateUid = bot._userDefinedStateResolver.InlineMessageResolve(update);
-                else
-                    stateUid = StandartResolveInlineState(update.CallbackQuery.Data);
-            }
+                case UpdateTypes.Message:           // пришло сообщение, введенное пользователем
+                    stateUid = bot._userDefinedStateResolver.SimpleMessageResolve(update);
+                break;
+
+                case UpdateTypes.CallbackQuery:     // пришло сообщение от inline-клавиатуры
+                    if (bot.IsCustomInlineStateResolver)          // выбираем кастомный или стандартный resolver состояния
+                        stateUid = bot._userDefinedStateResolver.InlineMessageResolve(update);
+                    else
+                        stateUid = StandartResolveInlineState(update.CallbackQuery.Data);
+                break;
+            }            
             return stateUid;
         }
 
@@ -92,7 +90,7 @@ namespace TelegramBotConstructor.MessageHandlers
         /// <param name="update"></param>
         /// <param name="chatId"></param>
         /// <param name="state"></param>
-        private async Task StateHandler(Update update, int chatId, State state)
+        private async Task StateHandler(Update update, State state)
         {
             if (bot.isNeedToCheckPreviousInlineMessage)
             {
